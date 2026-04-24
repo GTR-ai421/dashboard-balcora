@@ -1,0 +1,1029 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dashboard Productividad — Balcora</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0/dist/chartjs-plugin-datalabels.min.js"></script>
+<style>
+  :root {
+    --az1: #1e3a5f;
+    --az2: #2563eb;
+    --acc: #ea580c;
+    --acc2: #f97316;
+    --bg: #0a0f1e;
+    --bg2: #0f172a;
+    --card: #131c2e;
+    --border: #1e2d45;
+    --text: #e2e8f0;
+    --muted: #64748b;
+    --green: #10b981;
+    --yellow: #f59e0b;
+    --red: #ef4444;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { background:var(--bg); color:var(--text); font-family:'Syne',sans-serif; min-height:100vh; }
+
+  /* HEADER */
+  .header {
+    background: linear-gradient(135deg, var(--az1) 0%, #0f2545 50%, var(--bg) 100%);
+    padding: 28px 40px 24px;
+    display: flex; align-items: center; justify-content: space-between;
+    border-bottom: 1px solid var(--border);
+    position: relative; overflow: hidden;
+  }
+  .header::before {
+    content:''; position:absolute; top:-40px; right:-40px;
+    width:200px; height:200px; border-radius:50%;
+    background: radial-gradient(circle, rgba(37,99,235,0.25) 0%, transparent 70%);
+  }
+  .header-left h1 { font-size:1.7rem; font-weight:800; letter-spacing:-0.5px; }
+  .header-left h1 span { color:var(--acc); }
+  .header-left p { font-size:0.78rem; color:var(--muted); font-family:'DM Mono',monospace; margin-top:3px; }
+  .header-right { display:flex; gap:10px; align-items:center; }
+  .badge { background:rgba(234,88,12,0.15); border:1px solid rgba(234,88,12,0.4); color:var(--acc2); 
+           font-size:0.72rem; padding:4px 10px; border-radius:20px; font-family:'DM Mono',monospace; }
+
+  /* TABS */
+  .tabs { display:flex; gap:4px; padding:18px 40px 0; background:var(--bg2); border-bottom:1px solid var(--border); }
+  .tab {
+    padding:10px 22px; border-radius:8px 8px 0 0; cursor:pointer;
+    font-size:0.82rem; font-weight:600; color:var(--muted);
+    border:1px solid transparent; border-bottom:none;
+    transition:all .2s; background:transparent; letter-spacing:0.3px;
+  }
+  .tab:hover { color:var(--text); background:rgba(255,255,255,0.04); }
+  .tab.active { background:var(--card); color:var(--acc2); border-color:var(--border); }
+
+  /* MAIN */
+  .main { padding:28px 40px; background:var(--bg2); min-height:calc(100vh - 130px); }
+  .panel { display:none; }
+  .panel.active { display:block; }
+
+  /* KPI ROW */
+  .kpi-row { display:grid; grid-template-columns:repeat(4,1fr); gap:16px; margin-bottom:24px; }
+  .kpi {
+    background:var(--card); border:1px solid var(--border);
+    border-radius:12px; padding:20px 22px; position:relative; overflow:hidden;
+    transition: transform .15s;
+  }
+  .kpi:hover { transform:translateY(-2px); }
+  .kpi::after {
+    content:''; position:absolute; bottom:0; left:0; right:0; height:2px;
+    background:var(--accent-color, var(--az2));
+  }
+  .kpi-label { font-size:0.72rem; color:var(--muted); font-family:'DM Mono',monospace; letter-spacing:0.5px; margin-bottom:8px; }
+  .kpi-value { font-size:2rem; font-weight:800; line-height:1; }
+  .kpi-sub { font-size:0.74rem; color:var(--muted); margin-top:6px; font-family:'DM Mono',monospace; }
+  .kpi-trend { font-size:0.75rem; margin-top:4px; font-weight:600; }
+  .up { color:var(--green); }
+  .down { color:var(--red); }
+  .flat { color:var(--yellow); }
+
+  /* CHARTS GRID */
+  .charts-2 { display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:16px; }
+  .charts-3 { display:grid; grid-template-columns:1fr 1fr 1fr; gap:16px; margin-bottom:16px; }
+  .chart-full { margin-bottom:16px; }
+
+  .card {
+    background:var(--card); border:1px solid var(--border);
+    border-radius:12px; padding:22px;
+  }
+  .card-title {
+    font-size:0.78rem; font-weight:700; color:var(--muted); 
+    letter-spacing:0.8px; margin-bottom:16px; font-family:'DM Mono',monospace;
+    text-transform:uppercase; display:flex; align-items:center; gap:8px;
+  }
+  .card-title span { color:var(--acc); font-size:1rem; }
+  canvas { max-height:260px; }
+  .canvas-tall { max-height:340px !important; }
+  .canvas-short { max-height:180px !important; }
+
+  /* RANKING TABLE */
+  .ranking { width:100%; border-collapse:collapse; }
+  .ranking th {
+    font-size:0.68rem; font-family:'DM Mono',monospace; color:var(--muted);
+    text-transform:uppercase; letter-spacing:0.5px; padding:8px 12px;
+    text-align:left; border-bottom:1px solid var(--border);
+  }
+  .ranking td { padding:10px 12px; font-size:0.83rem; border-bottom:1px solid rgba(30,45,69,0.5); }
+  .ranking tr:last-child td { border-bottom:none; }
+  .ranking tr:hover td { background:rgba(255,255,255,0.025); }
+  .semaforo {
+    display:inline-block; width:10px; height:10px; border-radius:50%; margin-right:8px;
+  }
+  .bar-mini { height:6px; border-radius:3px; background:var(--az2); display:inline-block; }
+  .rank-num { color:var(--muted); font-family:'DM Mono',monospace; font-size:0.75rem; }
+
+  /* MATRIX */
+  .matrix-wrap { overflow-x:auto; }
+  .matrix { border-collapse:collapse; width:100%; font-size:0.76rem; }
+  .matrix th, .matrix td { padding:8px 12px; text-align:center; border:1px solid var(--border); }
+  .matrix th { font-family:'DM Mono',monospace; font-size:0.66rem; color:var(--muted); background:rgba(0,0,0,0.2); }
+  .matrix td.asesor-cell { text-align:left; font-size:0.75rem; white-space:nowrap; }
+  .heat-0  { background:rgba(30,58,95,0.3); color:#475569; }
+  .heat-1  { background:rgba(16,185,129,0.12); color:#6ee7b7; }
+  .heat-2  { background:rgba(16,185,129,0.25); color:#34d399; }
+  .heat-3  { background:rgba(16,185,129,0.4); color:#10b981; }
+  .heat-4  { background:rgba(16,185,129,0.6); color:#059669; }
+  .heat-5  { background:rgba(16,185,129,0.8); color:#047857; }
+
+  /* INSIGHTS BOX */
+  .insights { background:rgba(234,88,12,0.06); border:1px solid rgba(234,88,12,0.2); 
+              border-radius:10px; padding:16px 20px; margin-bottom:16px; }
+  .insights-title { font-size:0.72rem; color:var(--acc); font-family:'DM Mono',monospace; 
+                    letter-spacing:0.8px; margin-bottom:10px; text-transform:uppercase; }
+  .insight-item { font-size:0.8rem; color:#cbd5e1; margin-bottom:6px; padding-left:14px; position:relative; }
+  .insight-item::before { content:'→'; position:absolute; left:0; color:var(--acc); }
+
+  /* MONTH FILTER */
+  .filter-row { display:flex; gap:8px; margin-bottom:20px; align-items:center; }
+  .filter-label { font-size:0.72rem; color:var(--muted); font-family:'DM Mono',monospace; }
+  .filter-btn {
+    padding:6px 16px; border-radius:6px; cursor:pointer; font-size:0.78rem;
+    border:1px solid var(--border); background:transparent; color:var(--muted);
+    font-family:'Syne',sans-serif; font-weight:600; transition:all .15s;
+  }
+  .filter-btn:hover, .filter-btn.active { 
+    background:var(--az2); border-color:var(--az2); color:#fff; 
+  }
+
+  /* RESPONSIVE */
+  @media (max-width:900px) {
+    .kpi-row { grid-template-columns:1fr 1fr; }
+    .charts-2 { grid-template-columns:1fr; }
+    .charts-3 { grid-template-columns:1fr; }
+    .main, .header, .tabs { padding-left:16px; padding-right:16px; }
+  }
+
+  .tipo-selector { display:flex; align-items:center; gap:6px; background:rgba(255,255,255,0.04); padding:6px 10px; border-radius:10px; border:1px solid var(--border); }
+  .tipo-label { font-family:'DM Mono',monospace; font-size:0.65rem; color:var(--muted); letter-spacing:0.5px; margin-right:4px; }
+  .tipo-btn { padding:6px 12px; border-radius:6px; border:1px solid transparent; background:transparent; color:var(--muted); font-family:'Syne',sans-serif; font-size:0.72rem; font-weight:600; cursor:pointer; transition:all .15s; letter-spacing:0.3px; }
+  .tipo-btn:hover { color:var(--text); background:rgba(255,255,255,0.05); }
+  .tipo-btn.active { background:var(--acc); color:#fff; border-color:var(--acc); }
+  .alert-table { width:100%; border-collapse:collapse; font-size:0.82rem; }
+  .alert-table th { font-family:'DM Mono',monospace; font-size:0.68rem; color:var(--muted); text-transform:uppercase; letter-spacing:0.5px; padding:8px 12px; text-align:left; border-bottom:1px solid var(--border); background:rgba(234,88,12,0.05); }
+  .alert-table td { padding:9px 12px; border-bottom:1px solid rgba(30,45,69,0.4); }
+  .alert-table tr:last-child td { border-bottom:none; }
+  .alert-table tr:hover td { background:rgba(234,88,12,0.04); }
+  .badge-alert { background:rgba(234,88,12,0.15); color:#fb923c; border:1px solid rgba(234,88,12,0.3); padding:2px 8px; border-radius:10px; font-size:0.7rem; font-family:'DM Mono',monospace; font-weight:600; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-left">
+    <h1>PRODUCTIVIDAD <span>BALCORA</span></h1>
+    <p>GESTIÓN DE CARTERA · AVALOGIC S.A.S · ACTUALIZADO: 2026-04-24 07:33:35</p>
+  </div>
+  <div class="header-right">
+    <div class="badge">⬤ LIVE · 20,527 REGISTROS</div>
+    <div class="badge">11 ASESORES</div>
+  </div>
+</div>
+
+<div class="tabs">
+  <div class="tab active" onclick="showPanel('mensual')">📅 Mensual</div>
+  <div class="tab" onclick="showPanel('diario')">📆 Diario</div>
+  <div class="tab" onclick="showPanel('semanal')">📊 Semanal</div>
+  <div class="tab" onclick="showPanel('asesores')">👤 Asesores</div>
+  <div class="tab" onclick="showPanel('canales')">📡 Canales</div>
+  <div class="tab" onclick="showPanel('matriz')">🔲 Matriz</div>
+</div>
+
+<div class="main">
+
+<!-- ===== MENSUAL ===== -->
+<div class="panel active" id="panel-mensual">
+  <div class="kpi-row" id="kpi-mensual">
+    <!-- renderMensual() rellena esto -->
+  </div>
+
+    <div class="insights">
+    <div class="insights-title">🔍 Hallazgos clave del analista</div>
+    <div class="insight-item">Marzo fue el mes más fuerte: 186 acuerdos cerrados (Pago + Descuento) frente a 118 de febrero y 87 de abril</div>
+    <div class="insight-item">El canal WhatsApp (saliente+entrante) tiene 53% de contactabilidad vs 7% de llamada saliente — oportunidad masiva de reconversión</div>
+    <div class="insight-item">DAHIANA MARIN lidera en contactabilidad (16.7%) y en cantidad de acuerdos cerrados (88)</div>
+    <div class="insight-item">La semana 12 (marzo 16-21) tuvo el mayor volumen (2,580 gestiones) pero menor tasa: desgaste de base</div>
+  </div>
+
+  <div class="charts-2">
+    <div class="card">
+      <div class="card-title"><span>📊</span>GESTIONES POR MES</div>
+      <canvas id="c-gestiones-mes"></canvas>
+    </div>
+    <div class="card">
+      <div class="card-title"><span>💹</span>CONTACTABILIDAD & ACUERDOS POR MES</div>
+      <canvas id="c-efect-mes"></canvas>
+    </div>
+  </div>
+  <div class="charts-2">
+    <div class="card">
+      <div class="card-title"><span>💰</span>TASA DE CIERRE POR MES (%) (COP millones)</div>
+      <canvas id="c-valor-mes"></canvas>
+    </div>
+    <div class="card">
+      <div class="card-title"><span>🥧</span>RESULTADOS DE GESTIÓN</div>
+      <canvas id="c-resultados"></canvas>
+    </div>
+  </div>
+</div>
+
+<!-- ===== DIARIO ===== -->
+<div class="panel" id="panel-diario">
+  <div class="filter-row">
+    <span class="filter-label">MES:</span>
+    <button class="filter-btn" onclick="filterDiario(2)">Febrero</button>
+    <button class="filter-btn" onclick="filterDiario(3)">Marzo</button>
+    <button class="filter-btn active" onclick="filterDiario(4)">Abril</button>
+    <button class="filter-btn" onclick="filterDiario(0)">Todos</button>
+  </div>
+  <div class="chart-full card">
+    <div class="card-title"><span>📈</span>GESTIONES DIARIAS — TENDENCIA</div>
+    <canvas id="c-diario-gestiones" class="canvas-tall"></canvas>
+  </div>
+  <div class="charts-2">
+    <div class="card">
+      <div class="card-title"><span>✅</span>CONTACTABILIDAD DIARIA (%)</div>
+      <canvas id="c-diario-efect" class="canvas-tall"></canvas>
+    </div>
+    <div class="card">
+      <div class="card-title"><span>🤝</span>ACUERDOS DIARIOS</div>
+      <canvas id="c-diario-acuerdos" class="canvas-tall"></canvas>
+    </div>
+  </div>
+</div>
+
+<!-- ===== SEMANAL ===== -->
+<div class="panel" id="panel-semanal">
+  <div class="filter-row">
+    <span class="filter-label">MES:</span>
+    <button class="filter-btn" onclick="filterSemanal(2)">Febrero</button>
+    <button class="filter-btn" onclick="filterSemanal(3)">Marzo</button>
+    <button class="filter-btn active" onclick="filterSemanal(4)">Abril</button>
+    <button class="filter-btn" onclick="filterSemanal(0)">Todos</button>
+  </div>
+  <div class="kpi-row" id="kpi-semanal"></div>
+  <div class="charts-2">
+    <div class="card">
+      <div class="card-title"><span>📊</span>GESTIONES POR SEMANA</div>
+      <canvas id="c-sem-gestiones"></canvas>
+    </div>
+    <div class="card">
+      <div class="card-title"><span>📉</span>CONTACTABILIDAD POR SEMANA (%)</div>
+      <canvas id="c-sem-efect"></canvas>
+    </div>
+  </div>
+  <div class="charts-2">
+    <div class="card">
+      <div class="card-title"><span>🤝</span>ACUERDOS POR SEMANA</div>
+      <canvas id="c-sem-acuerdos"></canvas>
+    </div>
+    <div class="card">
+      <div class="card-title"><span>💰</span>VALOR ACUERDOS POR SEMANA (millones)</div>
+      <canvas id="c-sem-valor"></canvas>
+    </div>
+  </div>
+</div>
+
+<!-- ===== ASESORES ===== -->
+<div class="panel" id="panel-asesores">
+  <div class="charts-2">
+    <div class="card">
+      <div class="card-title"><span>🏆</span>RANKING — CONTACTABILIDAD (%)</div>
+      <canvas id="c-ases-efect" class="canvas-tall"></canvas>
+    </div>
+    <div class="card">
+      <div class="card-title"><span>📞</span>RANKING — VOLUMEN GESTIONES</div>
+      <canvas id="c-ases-vol" class="canvas-tall"></canvas>
+    </div>
+  </div>
+  <div class="charts-2">
+    <div class="card">
+      <div class="card-title"><span>💰</span>VALOR ACUERDOS POR ASESOR (millones)</div>
+      <canvas id="c-ases-valor" class="canvas-tall"></canvas>
+    </div>
+    <div class="card">
+      <div class="card-title"><span>🤝</span>ACUERDOS POR ASESOR</div>
+      <canvas id="c-ases-acuerdos" class="canvas-tall"></canvas>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-title"><span>📋</span>TABLA COMPLETA — SEMÁFORO DE RENDIMIENTO</div>
+    <table class="ranking">
+      <thead>
+        <tr>
+          <th>#</th><th>ASESOR</th><th>GESTIONES</th><th>EFECTIVAS</th>
+          <th>CONTACT.</th><th>ACUERDOS</th><th>TASA DE CIERRE</th><th>RENDIMIENTO</th>
+        </tr>
+      </thead>
+      <tbody id="tabla-asesores"></tbody>
+    </table>
+  </div>
+
+  <!-- DAILY BREAKDOWN -->
+  <div style="margin-top:20px">
+    <div style="display:flex;align-items:center;gap:16px;margin-bottom:16px;flex-wrap:wrap">
+      <div style="font-size:0.72rem;color:var(--muted);font-family:'DM Mono',monospace;letter-spacing:.5px">ASESOR:</div>
+      <select id="sel-asesor" onchange="renderAsesorDia()" style="background:var(--card);border:1px solid var(--border);color:var(--text);font-family:'DM Mono',monospace;font-size:0.78rem;padding:6px 12px;border-radius:6px;cursor:pointer;outline:none">
+        <option value="TODOS">— TODOS —</option>
+      </select>
+      <div style="font-size:0.72rem;color:var(--muted);font-family:'DM Mono',monospace;letter-spacing:.5px;margin-left:8px">FECHA:</div>
+      <input type="date" id="date-from" value="2026-02-09" min="2026-02-09" max="2026-04-21"
+        onchange="renderAsesorDia()"
+        style="background:var(--card);border:1px solid var(--border);color:var(--text);font-family:'DM Mono',monospace;font-size:0.78rem;padding:6px 10px;border-radius:6px;outline:none;cursor:pointer">
+      <span style="color:var(--muted);font-size:.8rem">→</span>
+      <input type="date" id="date-to" value="2026-04-21" min="2026-02-09" max="2026-04-21"
+        onchange="renderAsesorDia()"
+        style="background:var(--card);border:1px solid var(--border);color:var(--text);font-family:'DM Mono',monospace;font-size:0.78rem;padding:6px 10px;border-radius:6px;outline:none;cursor:pointer">
+      <button onclick="quickDate('today')" class="filter-btn">Hoy</button>
+      <button onclick="quickDate('mes4')" class="filter-btn">Abril</button>
+      <button onclick="quickDate('mes3')" class="filter-btn">Marzo</button>
+      <button onclick="quickDate('all')" class="filter-btn active" id="qbtn-all">Todo</button>
+    </div>
+    <div id="kpi-asesor-dia" style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:16px"></div>
+    <div class="charts-3">
+      <div class="card">
+        <div class="card-title"><span>📞</span>GESTIONES DÍA A DÍA</div>
+        <canvas id="c-ad-gestiones" class="canvas-tall"></canvas>
+      </div>
+      <div class="card">
+        <div class="card-title"><span>🤝</span>ACUERDOS DÍA A DÍA</div>
+        <canvas id="c-ad-acuerdos" class="canvas-tall"></canvas>
+      </div>
+      <div class="card">
+        <div class="card-title"><span>💰</span>VALOR ACUERDOS DÍA (miles $)</div>
+        <canvas id="c-ad-valor" class="canvas-tall"></canvas>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== CANALES ===== -->
+<div class="panel" id="panel-canales">
+  <div class="insights">
+    <div class="insights-title">💡 Análisis estratégico de canales</div>
+    <div class="insight-item">WhatsApp Entrante: 56.2% contactabilidad — el cliente que llega ya tiene intención de pago. Priorizar respuesta inmediata</div>
+    <div class="insight-item">WhatsApp Saliente: 52.9% contactabilidad vs 7% llamada saliente — el mismo mensaje por diferente canal multiplica x7 el resultado</div>
+    <div class="insight-item">Predictivo: 17.5% contactabilidad con alto volumen (6,049 gestiones) — excelente para filtrar contactos viables</div>
+    <div class="insight-item">Llamada Saliente: 64.8% del volumen total pero solo 7% contactabilidad — costo operativo alto, retorno bajo</div>
+  </div>
+  <div class="charts-2">
+    <div class="card">
+      <div class="card-title"><span>🎯</span>CONTACTABILIDAD POR CANAL (%)</div>
+      <canvas id="c-canal-efect" class="canvas-tall"></canvas>
+    </div>
+    <div class="card">
+      <div class="card-title"><span>📊</span>VOLUMEN DE GESTIONES POR CANAL</div>
+      <canvas id="c-canal-vol" class="canvas-tall"></canvas>
+    </div>
+  </div>
+  <div class="charts-2">
+    <div class="card">
+      <div class="card-title"><span>💰</span>TASA DE CIERRE POR CANAL (%)</div>
+      <canvas id="c-canal-valor" class="canvas-tall"></canvas>
+    </div>
+    <div class="card">
+      <div class="card-title"><span>🔄</span>ACUERDOS POR CANAL</div>
+      <canvas id="c-canal-acuerdos" class="canvas-tall"></canvas>
+    </div>
+  </div>
+</div>
+
+<!-- ===== MATRIZ ===== -->
+<div class="panel" id="panel-matriz">
+  <div class="insights">
+    <div class="insights-title">🔲 Cómo leer la matriz</div>
+    <div class="insight-item">Cada celda muestra la tasa de contactabilidad (%) del asesor en ese canal. Verde intenso = alto rendimiento</div>
+    <div class="insight-item">Las celdas vacías (-) indican que el asesor no usa ese canal — oportunidad de capacitación cruzada</div>
+    <div class="insight-item">El número entre paréntesis es el total de gestiones usadas para calcular la tasa</div>
+  </div>
+  <div class="card">
+    <div class="card-title"><span>🔲</span>MATRIZ CONTACTABILIDAD — ASESOR × CANAL</div>
+    <div class="matrix-wrap">
+      <table class="matrix" id="tabla-matriz"></table>
+    </div>
+  </div>
+  <div style="height:16px"></div>
+  <div class="card">
+    <div class="card-title"><span>📊</span>CONTACTABILIDAD POR CANAL POR ASESOR — COMPARATIVO</div>
+    <canvas id="c-matriz-bar" style="max-height:380px"></canvas>
+  </div>
+</div>
+
+</div><!-- /main -->
+
+<script>
+// ===================== DATA =====================
+// ═══════════════════════════════════════════════════════════════════
+// DATA BALCORA — Acuerdos = Acuerdo de Pago + Acuerdo con Descuento
+// (Balcora NO usa Parciales — ver memoria)
+// ═══════════════════════════════════════════════════════════════════
+const DATA = {"mensual": {"gestiones": [5500, 9314, 5713], "contactabilidad": [10.2, 13.2, 13.3], "acuerdos": [118, 186, 95], "valor": [0.0, 0.0, 0.0], "meses_nombres": ["Feb", "Mar", "Abr"]}, "diario": [{"total_gestiones": 131, "efectivas": 13, "acuerdos": 7, "valor_acuerdos": 0.0, "tasa_contactabilidad": 9.9, "dia": "2026-02-09"}, {"total_gestiones": 221, "efectivas": 78, "acuerdos": 10, "valor_acuerdos": 0.0, "tasa_contactabilidad": 35.3, "dia": "2026-02-10"}, {"total_gestiones": 397, "efectivas": 48, "acuerdos": 10, "valor_acuerdos": 0.0, "tasa_contactabilidad": 12.1, "dia": "2026-02-11"}, {"total_gestiones": 402, "efectivas": 29, "acuerdos": 7, "valor_acuerdos": 0.0, "tasa_contactabilidad": 7.2, "dia": "2026-02-12"}, {"total_gestiones": 409, "efectivas": 19, "acuerdos": 5, "valor_acuerdos": 0.0, "tasa_contactabilidad": 4.6, "dia": "2026-02-13"}, {"total_gestiones": 218, "efectivas": 22, "acuerdos": 3, "valor_acuerdos": 0.0, "tasa_contactabilidad": 10.1, "dia": "2026-02-14"}, {"total_gestiones": 240, "efectivas": 33, "acuerdos": 7, "valor_acuerdos": 0.0, "tasa_contactabilidad": 13.8, "dia": "2026-02-16"}, {"total_gestiones": 227, "efectivas": 25, "acuerdos": 9, "valor_acuerdos": 0.0, "tasa_contactabilidad": 11.0, "dia": "2026-02-17"}, {"total_gestiones": 411, "efectivas": 32, "acuerdos": 7, "valor_acuerdos": 0.0, "tasa_contactabilidad": 7.8, "dia": "2026-02-18"}, {"total_gestiones": 340, "efectivas": 28, "acuerdos": 10, "valor_acuerdos": 0.0, "tasa_contactabilidad": 8.2, "dia": "2026-02-19"}, {"total_gestiones": 360, "efectivas": 24, "acuerdos": 3, "valor_acuerdos": 0.0, "tasa_contactabilidad": 6.7, "dia": "2026-02-20"}, {"total_gestiones": 370, "efectivas": 39, "acuerdos": 4, "valor_acuerdos": 0.0, "tasa_contactabilidad": 10.5, "dia": "2026-02-21"}, {"total_gestiones": 230, "efectivas": 34, "acuerdos": 9, "valor_acuerdos": 0.0, "tasa_contactabilidad": 14.8, "dia": "2026-02-23"}, {"total_gestiones": 250, "efectivas": 37, "acuerdos": 5, "valor_acuerdos": 0.0, "tasa_contactabilidad": 14.8, "dia": "2026-02-24"}, {"total_gestiones": 309, "efectivas": 29, "acuerdos": 8, "valor_acuerdos": 0.0, "tasa_contactabilidad": 9.4, "dia": "2026-02-25"}, {"total_gestiones": 331, "efectivas": 28, "acuerdos": 8, "valor_acuerdos": 0.0, "tasa_contactabilidad": 8.5, "dia": "2026-02-26"}, {"total_gestiones": 393, "efectivas": 19, "acuerdos": 6, "valor_acuerdos": 0.0, "tasa_contactabilidad": 4.8, "dia": "2026-02-27"}, {"total_gestiones": 261, "efectivas": 24, "acuerdos": 0, "valor_acuerdos": 0.0, "tasa_contactabilidad": 9.2, "dia": "2026-02-28"}, {"total_gestiones": 245, "efectivas": 39, "acuerdos": 5, "valor_acuerdos": 0.0, "tasa_contactabilidad": 15.9, "dia": "2026-03-02"}, {"total_gestiones": 270, "efectivas": 40, "acuerdos": 8, "valor_acuerdos": 0.0, "tasa_contactabilidad": 14.8, "dia": "2026-03-03"}, {"total_gestiones": 390, "efectivas": 57, "acuerdos": 15, "valor_acuerdos": 0.0, "tasa_contactabilidad": 14.6, "dia": "2026-03-04"}, {"total_gestiones": 381, "efectivas": 70, "acuerdos": 15, "valor_acuerdos": 0.0, "tasa_contactabilidad": 18.4, "dia": "2026-03-05"}, {"total_gestiones": 365, "efectivas": 54, "acuerdos": 11, "valor_acuerdos": 0.0, "tasa_contactabilidad": 14.8, "dia": "2026-03-06"}, {"total_gestiones": 129, "efectivas": 20, "acuerdos": 2, "valor_acuerdos": 0.0, "tasa_contactabilidad": 15.5, "dia": "2026-03-07"}, {"total_gestiones": 363, "efectivas": 60, "acuerdos": 8, "valor_acuerdos": 0.0, "tasa_contactabilidad": 16.5, "dia": "2026-03-09"}, {"total_gestiones": 350, "efectivas": 47, "acuerdos": 9, "valor_acuerdos": 0.0, "tasa_contactabilidad": 13.4, "dia": "2026-03-10"}, {"total_gestiones": 417, "efectivas": 35, "acuerdos": 3, "valor_acuerdos": 0.0, "tasa_contactabilidad": 8.4, "dia": "2026-03-11"}, {"total_gestiones": 322, "efectivas": 37, "acuerdos": 15, "valor_acuerdos": 0.0, "tasa_contactabilidad": 11.5, "dia": "2026-03-12"}, {"total_gestiones": 464, "efectivas": 79, "acuerdos": 7, "valor_acuerdos": 0.0, "tasa_contactabilidad": 17.0, "dia": "2026-03-13"}, {"total_gestiones": 308, "efectivas": 57, "acuerdos": 4, "valor_acuerdos": 0.0, "tasa_contactabilidad": 18.5, "dia": "2026-03-14"}, {"total_gestiones": 536, "efectivas": 84, "acuerdos": 3, "valor_acuerdos": 0.0, "tasa_contactabilidad": 15.7, "dia": "2026-03-16"}, {"total_gestiones": 454, "efectivas": 34, "acuerdos": 8, "valor_acuerdos": 0.0, "tasa_contactabilidad": 7.5, "dia": "2026-03-17"}, {"total_gestiones": 517, "efectivas": 57, "acuerdos": 13, "valor_acuerdos": 0.0, "tasa_contactabilidad": 11.0, "dia": "2026-03-18"}, {"total_gestiones": 459, "efectivas": 33, "acuerdos": 5, "valor_acuerdos": 0.0, "tasa_contactabilidad": 7.2, "dia": "2026-03-19"}, {"total_gestiones": 330, "efectivas": 35, "acuerdos": 7, "valor_acuerdos": 0.0, "tasa_contactabilidad": 10.6, "dia": "2026-03-20"}, {"total_gestiones": 284, "efectivas": 30, "acuerdos": 4, "valor_acuerdos": 0.0, "tasa_contactabilidad": 10.6, "dia": "2026-03-21"}, {"total_gestiones": 513, "efectivas": 56, "acuerdos": 5, "valor_acuerdos": 0.0, "tasa_contactabilidad": 10.9, "dia": "2026-03-24"}, {"total_gestiones": 444, "efectivas": 51, "acuerdos": 8, "valor_acuerdos": 0.0, "tasa_contactabilidad": 11.5, "dia": "2026-03-25"}, {"total_gestiones": 438, "efectivas": 71, "acuerdos": 12, "valor_acuerdos": 0.0, "tasa_contactabilidad": 16.2, "dia": "2026-03-26"}, {"total_gestiones": 280, "efectivas": 39, "acuerdos": 7, "valor_acuerdos": 0.0, "tasa_contactabilidad": 13.9, "dia": "2026-03-27"}, {"total_gestiones": 285, "efectivas": 30, "acuerdos": 2, "valor_acuerdos": 0.0, "tasa_contactabilidad": 10.5, "dia": "2026-03-28"}, {"total_gestiones": 398, "efectivas": 77, "acuerdos": 6, "valor_acuerdos": 0.0, "tasa_contactabilidad": 19.3, "dia": "2026-03-30"}, {"total_gestiones": 372, "efectivas": 39, "acuerdos": 4, "valor_acuerdos": 0.0, "tasa_contactabilidad": 10.5, "dia": "2026-03-31"}, {"total_gestiones": 536, "efectivas": 50, "acuerdos": 7, "valor_acuerdos": 0.0, "tasa_contactabilidad": 9.3, "dia": "2026-04-01"}, {"total_gestiones": 219, "efectivas": 21, "acuerdos": 4, "valor_acuerdos": 0.0, "tasa_contactabilidad": 9.6, "dia": "2026-04-04"}, {"total_gestiones": 454, "efectivas": 61, "acuerdos": 11, "valor_acuerdos": 0.0, "tasa_contactabilidad": 13.4, "dia": "2026-04-06"}, {"total_gestiones": 238, "efectivas": 23, "acuerdos": 6, "valor_acuerdos": 0.0, "tasa_contactabilidad": 9.7, "dia": "2026-04-07"}, {"total_gestiones": 239, "efectivas": 31, "acuerdos": 4, "valor_acuerdos": 0.0, "tasa_contactabilidad": 13.0, "dia": "2026-04-08"}, {"total_gestiones": 313, "efectivas": 43, "acuerdos": 9, "valor_acuerdos": 0.0, "tasa_contactabilidad": 13.7, "dia": "2026-04-09"}, {"total_gestiones": 260, "efectivas": 25, "acuerdos": 2, "valor_acuerdos": 0.0, "tasa_contactabilidad": 9.6, "dia": "2026-04-10"}, {"total_gestiones": 116, "efectivas": 18, "acuerdos": 4, "valor_acuerdos": 0.0, "tasa_contactabilidad": 15.5, "dia": "2026-04-11"}, {"total_gestiones": 64, "efectivas": 27, "acuerdos": 6, "valor_acuerdos": 0.0, "tasa_contactabilidad": 42.2, "dia": "2026-04-13"}, {"total_gestiones": 472, "efectivas": 50, "acuerdos": 5, "valor_acuerdos": 0.0, "tasa_contactabilidad": 10.6, "dia": "2026-04-14"}, {"total_gestiones": 344, "efectivas": 76, "acuerdos": 6, "valor_acuerdos": 0.0, "tasa_contactabilidad": 22.1, "dia": "2026-04-15"}, {"total_gestiones": 307, "efectivas": 47, "acuerdos": 5, "valor_acuerdos": 0.0, "tasa_contactabilidad": 15.3, "dia": "2026-04-16"}, {"total_gestiones": 221, "efectivas": 30, "acuerdos": 3, "valor_acuerdos": 0.0, "tasa_contactabilidad": 13.6, "dia": "2026-04-17"}, {"total_gestiones": 173, "efectivas": 36, "acuerdos": 2, "valor_acuerdos": 0.0, "tasa_contactabilidad": 20.8, "dia": "2026-04-18"}, {"total_gestiones": 625, "efectivas": 94, "acuerdos": 7, "valor_acuerdos": 0.0, "tasa_contactabilidad": 15.0, "dia": "2026-04-20"}, {"total_gestiones": 589, "efectivas": 64, "acuerdos": 6, "valor_acuerdos": 0.0, "tasa_contactabilidad": 10.9, "dia": "2026-04-21"}, {"total_gestiones": 543, "efectivas": 63, "acuerdos": 8, "valor_acuerdos": 0.0, "tasa_contactabilidad": 11.6, "dia": "2026-04-22"}], "semanal": [{"total_gestiones": 1778, "efectivas": 209, "acuerdos": 42, "valor_acuerdos": 0.0, "tasa_contactabilidad": 11.8, "mes": 2, "semana": 7, "label": "Sem 1 · 9-14 Feb"}, {"total_gestiones": 1948, "efectivas": 181, "acuerdos": 40, "valor_acuerdos": 0.0, "tasa_contactabilidad": 9.3, "mes": 2, "semana": 8, "label": "Sem 2 · 16-21 Feb"}, {"total_gestiones": 1774, "efectivas": 171, "acuerdos": 36, "valor_acuerdos": 0.0, "tasa_contactabilidad": 9.6, "mes": 2, "semana": 9, "label": "Sem 3 · 23-28 Feb"}, {"total_gestiones": 1780, "efectivas": 280, "acuerdos": 56, "valor_acuerdos": 0.0, "tasa_contactabilidad": 15.7, "mes": 3, "semana": 10, "label": "Sem 1 · 2-7 Mar"}, {"total_gestiones": 2224, "efectivas": 315, "acuerdos": 46, "valor_acuerdos": 0.0, "tasa_contactabilidad": 14.2, "mes": 3, "semana": 11, "label": "Sem 2 · 9-14 Mar"}, {"total_gestiones": 2580, "efectivas": 273, "acuerdos": 40, "valor_acuerdos": 0.0, "tasa_contactabilidad": 10.6, "mes": 3, "semana": 12, "label": "Sem 3 · 16-21 Mar"}, {"total_gestiones": 1960, "efectivas": 247, "acuerdos": 34, "valor_acuerdos": 0.0, "tasa_contactabilidad": 12.6, "mes": 3, "semana": 13, "label": "Sem 4 · 24-28 Mar"}, {"total_gestiones": 770, "efectivas": 116, "acuerdos": 10, "valor_acuerdos": 0.0, "tasa_contactabilidad": 15.1, "mes": 3, "semana": 14, "label": "Sem 5 · 30-31 Mar"}, {"total_gestiones": 755, "efectivas": 71, "acuerdos": 11, "valor_acuerdos": 0.0, "tasa_contactabilidad": 9.4, "mes": 4, "semana": 14, "label": "Sem 1 · 1-4 Abr"}, {"total_gestiones": 1620, "efectivas": 201, "acuerdos": 36, "valor_acuerdos": 0.0, "tasa_contactabilidad": 12.4, "mes": 4, "semana": 15, "label": "Sem 2 · 6-11 Abr"}, {"total_gestiones": 1581, "efectivas": 266, "acuerdos": 27, "valor_acuerdos": 0.0, "tasa_contactabilidad": 16.8, "mes": 4, "semana": 16, "label": "Sem 3 · 13-18 Abr"}, {"total_gestiones": 1757, "efectivas": 221, "acuerdos": 21, "valor_acuerdos": 0.0, "tasa_contactabilidad": 12.6, "mes": 4, "semana": 17, "label": "Sem 4 · 20-22 Abr"}], "asesor": [{"total_gestiones": 374, "efectivas": 55, "acuerdos": 19, "valor_acuerdos": 0.0, "tasa_contactabilidad": 14.7, "nombre": "ANA MARIA BALZAC"}, {"total_gestiones": 2153, "efectivas": 239, "acuerdos": 34, "valor_acuerdos": 0.0, "tasa_contactabilidad": 11.1, "nombre": "BIVIANA CANO"}, {"total_gestiones": 4010, "efectivas": 669, "acuerdos": 90, "valor_acuerdos": 0.0, "tasa_contactabilidad": 16.7, "nombre": "DAHIANA MARIN"}, {"total_gestiones": 4643, "efectivas": 582, "acuerdos": 68, "valor_acuerdos": 0.0, "tasa_contactabilidad": 12.5, "nombre": "ESTEFANIA VELEZ"}, {"total_gestiones": 4234, "efectivas": 479, "acuerdos": 77, "valor_acuerdos": 0.0, "tasa_contactabilidad": 11.3, "nombre": "JAIME MAZO"}, {"total_gestiones": 815, "efectivas": 96, "acuerdos": 23, "valor_acuerdos": 0.0, "tasa_contactabilidad": 11.8, "nombre": "JULIANA ALVAREZ"}, {"total_gestiones": 127, "efectivas": 23, "acuerdos": 1, "valor_acuerdos": 0.0, "tasa_contactabilidad": 18.1, "nombre": "MARTA BALZAC"}, {"total_gestiones": 477, "efectivas": 27, "acuerdos": 4, "valor_acuerdos": 0.0, "tasa_contactabilidad": 5.7, "nombre": "SYLVANA MOLINA"}, {"total_gestiones": 1070, "efectivas": 166, "acuerdos": 43, "valor_acuerdos": 0.0, "tasa_contactabilidad": 15.5, "nombre": "SILVIA BALZAC"}, {"total_gestiones": 1248, "efectivas": 82, "acuerdos": 18, "valor_acuerdos": 0.0, "tasa_contactabilidad": 6.6, "nombre": "TATIANA VERGARA"}, {"total_gestiones": 1376, "efectivas": 133, "acuerdos": 22, "valor_acuerdos": 0.0, "tasa_contactabilidad": 9.7, "nombre": "YENIFER AGUDELO"}], "canal": [{"total_gestiones": 13285, "efectivas": 938, "acuerdos": 162, "valor_acuerdos": 0.0, "tasa_contactabilidad": 7.1, "canal": "Llamada Saliente"}, {"total_gestiones": 6241, "efectivas": 1091, "acuerdos": 91, "valor_acuerdos": 0.0, "tasa_contactabilidad": 17.5, "canal": "Predictivo"}, {"total_gestiones": 674, "efectivas": 357, "acuerdos": 95, "valor_acuerdos": 0.0, "tasa_contactabilidad": 53.0, "canal": "Whatsapp Saliente"}, {"total_gestiones": 264, "efectivas": 146, "acuerdos": 41, "valor_acuerdos": 0.0, "tasa_contactabilidad": 55.3, "canal": "Whatsapp Entrante"}, {"total_gestiones": 35, "efectivas": 12, "acuerdos": 5, "valor_acuerdos": 0.0, "tasa_contactabilidad": 34.3, "canal": "Llamada Entrante"}, {"total_gestiones": 20, "efectivas": 6, "acuerdos": 4, "valor_acuerdos": 0.0, "tasa_contactabilidad": 30.0, "canal": "Whatsapp Movil"}, {"total_gestiones": 4, "efectivas": 1, "acuerdos": 1, "valor_acuerdos": 0.0, "tasa_contactabilidad": 25.0, "canal": "Correo Electronico"}, {"total_gestiones": 2, "efectivas": 0, "acuerdos": 0, "valor_acuerdos": 0.0, "tasa_contactabilidad": 0.0, "canal": "Mensaje de Texto"}, {"total_gestiones": 2, "efectivas": 0, "acuerdos": 0, "valor_acuerdos": 0.0, "tasa_contactabilidad": 0.0, "canal": "Web"}], "asesor_dia": [{"total_gestiones": 4, "efectivas": 2, "acuerdos": 2, "valor_acuerdos": 0.0, "tasa_contactabilidad": 50.0, "nombre": "ANA MARIA BALZAC", "full": "ANA MARIA BALZAC SALAZAR", "dia": "2026-02-09"}, {"total_gestiones": 22, "efectivas": 16, "acuerdos": 1, "valor_acuerdos": 0.0, "tasa_contactabilidad": 72.7, "nombre": "ANA MARIA BALZAC", "full": "ANA MARIA BALZAC SALAZAR", "dia": "2026-02-10"}, {"total_gestiones": 34, "efectivas": 11, "acuerdos": 2, "valor_acuerdos": 0.0, "tasa_contactabilidad": 32.4, "nombre": "ANA MARIA BALZAC", "full": "ANA MARIA BALZAC SALAZAR", "dia": "2026-02-11"}, {"total_gestiones": 37, "efectivas": 2, "acuerdos": 0, "valor_acuerdos": 0.0, "tasa_contactabilidad": 5.4, "nombre": "ANA MARIA BALZAC", "full": "ANA MARIA BALZAC SALAZAR", "dia": "2026-02-12"}, {"total_gestiones": 13, "efectivas": 0, "acuerdos": 0, "valor_acuerdos": 0.0, "tasa_contactabilidad": 0.0, "nombre": "ANA MARIA BALZAC", "full": "ANA MARIA BALZAC SALAZAR", "dia": "2026-02-18"}, {"total_gestiones": 37, "efectivas": 3, "acuerdos": 3, "valor_acuerdos": 0.0, "tasa_contactabilidad": 8.1, "nombre": "ANA MARIA BALZAC", "full": "ANA MARIA BALZAC SALAZAR", "dia": "2026-02-19"}, {"total_gestiones": 20, "efectivas": 1, "acuerdos": 1, "valor_acuerdos": 0.0, "tasa_contactabilidad": 5.0, "nombre": "ANA MARIA BALZAC", "full": "ANA MARIA BALZAC SALAZAR", "dia": "2026-02-20"}, {"total_gestiones": 33, "efectivas": 1, "acuerdos": 1, "valor_acuerdos": 0.0, "tasa_contactabilidad": 3.0, "nombre": "ANA MARIA BALZAC", "full": "ANA MARIA BALZAC SALAZAR", "dia": "2026-02-24"}, {"total_gestiones": 39, "efectivas": 3, "acuerdos": 3, "valor_acuerdos": 0.0, "tasa_contactabilidad": 7.7, "nombre": "ANA MARIA BALZAC", "full": "ANA MARIA BALZAC SALAZAR", "dia": "2026-02-25"}, {"total_gestiones": 36, "efectivas": 4, "acuerdos": 4, "valor_acuerdos": 0.0, "tasa_contactabilidad": 11.1, "nombre": "ANA MARIA BALZAC", "full": "ANA MARIA BALZAC SALAZAR", "dia": "2026-02-26"}, {"total_gestiones": 9, "efectivas": 1, "acuerdos": 0, "valor_acuerdos": 0.0, "tasa_contactabilidad": 11.1, "nombre": "ANA MARIA BALZAC", "full": "ANA MARIA BALZAC SALAZAR", "dia": "2026-02-27"}, {"total_gestiones": 12, "efectivas": 1, "acuerdos": 0, "valor_acuerdos": 0.0, "tasa_contactabilidad": 8.3, "nombre": "ANA MARIA BALZAC", "full": "ANA MARIA BALZAC SALAZAR", "dia": "2026-03-02"}, {"total_gestiones": 31, "efectivas": 0, "acuerdos": 0, "valor_acuerdos": 0.0, "tasa_contactabilidad": 0.0, "nombre": "ANA MARIA BALZAC", "full": "ANA MARIA BALZAC SALAZAR", "dia": "2026-03-04"}, {"total_gestiones": 31, "efectivas": 10, "acuerdos": 2, "valor_acuerdos": 0.0, "tasa_contactabilidad": 32.3, "nombre": "ANA MARIA BALZAC", "full": "ANA MARIA BALZAC SALAZAR", "dia": "2026-03-05"}, {"total_gestiones": 16, "efectivas": 0, "acuerdos": 0, "valor_acuerdos": 0.0, "tasa_contactabilidad": 0.0, "nombre": "ANA MARIA BALZAC", "full": "ANA MARIA BALZAC SALAZAR", "dia": "2026-03-10"}, {"total_gestiones": 112, "efectivas": 11, "acuerdos": 2, "valor_acuerdos": 0.0, "tasa_contactabilidad": 9.8, "nombre": "BIVIANA CANO", "full": "Biviana Patricia Cano Arredondo", "dia": "2026-03-18"}, {"total_gestiones": 103, "efectivas": 6, "acuerdos": 2, "valor_acuerdos": 0.0, "tasa_contactabilidad": 5.8, "nombre": "BIVIANA CANO", "full": "Biviana Patricia Cano Arredondo", "dia": "2026-03-19"}, {"total_gestiones": 87, "efectivas": 18, "acuerdos": 3, "valor_acuerdos": 0.0, "tasa_contactabilidad": 20.7, "nombre": "BIVIANA CANO", "full": "Biviana Patricia Cano Arredondo", "dia": "2026-03-20"}, {"total_gestiones": 107, "efectivas": 7, "acuerdos": 0, "valor_acuerdos": 0.0, "tasa_contactabilidad": 6.5, "nombre": "BIVIANA CANO", "full": "Biviana Patricia Cano Arredondo", "dia": "2026-03-24"}, {"total_gestiones": 107, "efectivas": 11, "acuerdos": 1, "valor_acuerdos": 0.0, "tasa_contactabilidad": 10.3, "nombre": "BIVIANA CANO", "full": "Biviana Patricia Cano Arredondo", "dia": "2026-03-25"}, {"total_gestiones": 129, "efectivas": 18, "acuerdos": 1, "valor_acuerdos": 0.0, "tasa_contactabilidad": 14.0, "nombre": "BIVIANA CANO", "full": "Biviana Patricia Cano Arredondo", "dia": "2026-03-26"}, {"total_gestiones": 99, "efectivas": 11, "acuerdos": 0, "valor_acuerdos": 0.0, "tasa_contactabilidad": 11.1, "nombre": "BIVIANA CANO", "full": "Biviana Patricia Cano Arredondo", "dia": "2026-03-27"}, {"total_gestiones": 90, "efectivas": 20, "acuerdos": 1, "valor_acuerdos": 0.0, "tasa_contactabilidad": 22.2, "nombre": "BIVIANA CANO", "full": "Biviana Patricia Cano Arredondo", "dia": "2026-03-30"}, {"total_gestiones": 86, "efectivas": 16, "acuerdos": 3, "valor_acuerdos": 0.0, "tasa_contactabilidad": 18.6, "nombre": "BIVIANA CANO", "full": "Biviana Patricia Cano Arredondo", "dia": "2026-03-31"}, {"total_gestiones": 91, "efectivas": 13, "acuerdos": 4, "valor_acuerdos": 0.0, "tasa_contactabilidad": 14.3, "nombre": "BIVIANA CANO", "full": "Biviana Patricia Cano Arredondo", "dia": "2026-04-01"}, {"total_gestiones": 89, "efectivas": 6, "acuerdos": 1, "valor_acuerdos": 0.0, "tasa_contactabilidad": 6.7, "nombre": "BIVIANA CANO", "full": "Biviana Patricia Cano Arredondo", "dia": "2026-04-06"}, {"total_gestiones": 35, "efectivas": 5, "acuerdos": 3, "valor_acuerdos": 0.0, "tasa_contactabilidad": 14.3, "nombre": "BIVIANA CANO", "full": "Biviana Patricia Cano Arredondo", "dia": "2026-04-07"}, {"total_gestiones": 70, "efectivas": 2, "acuerdos": 1, "valor_acuerdos": 0.0, "tasa_contactabilidad": 2.9, "nombre": "BIVIANA CANO", "full": "Biviana Patricia Cano Arredondo", "dia": "2026-04-08"}, {"total_gestiones": 99, "efectivas": 8, "acuerdos": 2, "valor_acuerdos": 0.0, "tasa_contactabilidad": 8.1, "nombre": "BIVIANA CANO", "full": "Biviana Patricia Cano Arredondo", "dia": "2026-04-09"}, {"total_gestiones": 71, "efectivas": 7, "acuerdos": 0, "valor_acuerdos": 0.0, "tasa_contactabilidad": 9.9, "nombre": "BIVIANA CANO", "full": "Biviana Patricia Cano Arredondo", "dia": "2026-04-10"}, {"total_gestiones": 36, "efectivas": 12, "acuerdos": 5, "valor_acuerdos": 0.0, "tasa_contactabilidad": 33.3, "nombre": "BIVIANA CANO", "full": "Biviana Patricia Cano Arredondo", "dia": "2026-04-13"}, {"total_gestiones": 61, "efectivas": 7, "acuerdos": 2, "valor_acuerdos": 0.0, "tasa_contactabilidad": 11.5, "nombre": "BIVIANA CANO", "full": "Biviana Patricia Cano Arredondo", "dia": "2026-04-14"}, {"total_gestiones": 108, "efectivas": 19, "acuerdos": 0, "valor_acuerdos": 0.0, "tasa_contactabilidad": 17.6, "nombre": "BIVIANA CANO", "full": "Biviana Patricia Cano Arredondo", "dia": "2026-04-15"}, {"total_gestiones": 83, "efectivas": 8, "acuerdos": 0, "valor_acuerdos": 0.0, "tasa_contactabilidad": 9.6, "nombre": "BIVIANA CANO", "full": "Biviana Patricia Cano Arredondo", "dia": "2026-04-16"}, {"total_gestiones": 84, "efectivas": 6, "acuerdos": 1, "valor_acuerdos": 0.0, "tasa_contactabilidad": 7.1, "nombre": "BIVIANA CANO", "full": "Biviana Patricia Cano Arredondo", "dia": "2026-04-17"}, {"total_gestiones": 123, "efectivas": 14, "acuerdos": 1, "valor_acuerdos": 0.0, "tasa_contactabilidad": 11.4, "nombre": "BIVIANA CANO", "full": "Biviana Patricia Cano Arredondo", "dia": "2026-04-20"}, {"total_gestiones": 143, "efectivas": 7, "acuerdos": 0, "valor_acuerdos": 0.0, "tasa_contactabilidad": 4.9, "nombre": "BIVIANA CANO", "full": "Biviana Patricia Cano Arredondo", "dia": "2026-04-21"}, {"total_gestiones": 140, "efectivas": 7, "acuerdos": 1, "valor_acuerdos": 0.0, "tasa_contactabilidad": 5.0, "nombre": "BIVIANA CANO", "full": "Biviana Patricia Cano Arredondo", "dia": "2026-04-22"}, {"total_gestiones": 15, "efectivas": 2, "acuerdos": 1, "valor_acuerdos": 0.0, "tasa_contactabilidad": 13.3, "nombre": "DAHIANA MARIN", "full": "DAHIANA MARIN SANCHEZ", "dia": "2026-02-09"}, {"total_gestiones": 22, "efectivas": 1, "acuerdos": 0, "valor_acuerdos": 0.0, "tasa_contactabilidad": 4.5, "nombre": "DAHIANA MARIN", "full": "DAHIANA MARIN SANCHEZ", "dia": "2026-02-10"}, {"total_gestiones": 39, "efectivas": 4, "acuerdos": 0, "valor_acuerdos": 0.0, "tasa_contactabilidad": 10.3, "nombre": "DAHIANA MARIN", "full": "DAHIANA MARIN SANCHEZ", "dia": "2026-02-11"}, {"total_gestiones": 38, "efectivas": 7, "acuerdos": 2, "valor_acuerdos": 0.0, "tasa_contactabilidad": 18.4, "nombre": "DAHIANA MARIN", "full": "DAHIANA MARIN SANCHEZ", "dia": "2026-02-12"}, {"total_gestiones": 48, "efectivas": 5, "acuerdos": 1, "valor_acuerdos": 0.0, "tasa_contactabilidad": 10.4, "nombre": "DAHIANA MARIN", "full": "DAHIANA MARIN SANCHEZ", "dia": "2026-02-13"}, {"total_gestiones": 28, "efectivas": 3, "acuerdos": 0, "valor_acuerdos": 0.0, "tasa_contactabilidad": 10.7, "nombre": "DAHIANA MARIN", "full": "DAHIANA MARIN SANCHEZ", "dia": "2026-02-14"}, {"total_gestiones": 44, "efectivas": 9, "acuerdos": 2, "valor_acuerdos": 0.0, "tasa_contactabilidad": 20.5, "nombre": "DAHIANA MARIN", "full": "DAHIANA MARIN SANCHEZ", "dia": "2026-02-16"}, {"total_gestiones": 38, "efectivas": 6, "acuerdos": 0, "valor_acuerdos": 0.0, "tasa_contactabilidad": 15.8, "nombre": "DAHIANA MARIN", "full": "DAHIANA MARIN SANCHEZ", "dia": "2026-02-17"}, {"total_gestiones": 36, "efectivas": 6, "acuerdos": 1, "valor_acuerdos": 0.0, "tasa_contactabilidad": 16.7, "nombre": "DAHIANA MARIN", "full": "DAHIANA MARIN SANCHEZ", "dia": "2026-02-18"}, {"total_gestiones": 46, "efectivas": 2, "acuerdos": 0, "valor_acuerdos": 0.0, "tasa_contactabilidad": 4.3, "nombre": "DAHIANA MARIN", "full": "DAHIANA MARIN SANCHEZ", "dia": "2026-02-19"}, {"total_gestiones": 37, "efectivas": 3, "acuerdos": 0, "valor_acuerdos": 0.0, "tasa_contactabilidad": 8.1, "nombre": "DAHIANA MARIN", "full": "DAHIANA MARIN SANCHEZ", "dia": "2026-02-20"}, {"total_gestiones": 67, "efectivas": 9, "acuerdos": 0, "valor_acuerdos": 0.0, "tasa_contactabilidad": 13.4, "nombre": "DAHIANA MARIN", "full": "DAHIANA MARIN SANCHEZ", "dia": "2026-02-21"}, {"total_gestiones": 49, "efectivas": 10, "acuerdos": 2, "valor_acuerdos": 0.0, "tasa_contactabilidad": 20.4, "nombre": "DAHIANA MARIN", "full": "DAHIANA MARIN SANCHEZ", "dia": "2026-02-23"}, {"total_gestiones": 47, "efectivas": 15, "acuerdos": 2, "valor_acuerdos": 0.0, "tasa_contactabilidad": 31.9, "nombre": "DAHIANA MARIN", "full": "DAHIANA MARIN SANCHEZ", "dia": "2026-02-24"}, {"total_gestiones": 34, "efectivas": 6, "acuerdos": 2, "valor_acuerdos": 0.0, "tasa_contactabilidad": 17.6, "nombre": "DAHIANA MARIN", "full": "DAHIANA MARIN SANCHEZ", "dia": "2026-02-25"}, {"total_gestiones": 58, "efectivas": 10, "acuerdos": 2, "valor_acuerdos": 0.0, "tasa_contactabilidad": 17.2, "nombre": "DAHIANA MARIN", "full": "DAHIANA MARIN SANCHEZ", "dia": "2026-02-26"}, {"total_gestiones": 6, "efectivas": 2, "acuerdos": 0, "valor_acuerdos": 0.0, "tasa_contactabilidad": 33.3, "nombre": "DAHIANA MARIN", "full": "DAHIANA MARIN SANCHEZ", "dia": "2026-02-27"}, {"total_gestiones": 33, "efectivas": 5, "acuerdos": 0, "valor_acuerdos": 0.0, "tasa_contactabilidad": 15.2, "nombre": "DAHIANA MARIN", "full": "DAHIANA MARIN SANCHEZ", "dia": "2026-02-28"}, {"total_gestiones": 33, "efectivas": 10, "acuerdos": 2, "valor_acuerdos": 0.0, "tasa_contactabilidad": 30.3, "nombre": "DAHIANA MARIN", "full": "DAHIANA MARIN SANCHEZ", "dia": "2026-03-02"}, {"total_gestiones": 57, "efectivas": 4, "acuerdos": 2, "valor_acuerdos": 0.0, "tasa_contactabilidad": 7.0, "nombre": "DAHIANA MARIN", "full": "DAHIANA MARIN SANCHEZ", "dia": "2026-03-03"}, {"total_gestiones": 53, "efectivas": 14, "acuerdos": 4, "valor_acuerdos": 0.0, "tasa_contactabilidad": 26.4, "nombre": "DAHIANA MARIN", "full": "DAHIANA MARIN SANCHEZ", "dia": "2026-03-04"}, {"total_gestiones": 37, "efectivas": 15, "acuerdos": 2, "valor_acuerdos": 0.0, "tasa_contactabilidad": 40.5, "nombre": "DAHIANA MARIN", "full": "DAHIANA MARIN SANCHEZ", "dia": "2026-03-05"}, {"total_gestiones": 55, "efectivas": 8, "acuerdos": 2, "valor_acuerdos": 0.0, "tasa_contactabilidad": 14.5, "nombre": "DAHIANA MARIN", "full": "DAHIANA MARIN SANCHEZ", "dia": "2026-03-06"}, {"total_gestiones": 35, "efectivas": 6, "acuerdos": 0, "valor_acuerdos": 0.0, "tasa_contactabilidad": 17.1, "nombre": "DAHIANA MARIN", "full": "DAHIANA MARIN SANCHEZ", "dia": "2026-03-07"}, {"total_gestiones": 81, "efectivas": 17, "acuerdos": 0, "valor_acuerdos": 0.0, "tasa_contactabilidad": 21.0, "nombre": "DAHIANA MARIN", "full": "DAHIANA MARIN SANCHEZ", "dia": "2026-03-09"}, {"total_gestiones": 73, "efectivas": 16, "acuerdos": 2, "valor_acuerdos": 0.0, "tasa_contactabilidad": 21.9, "nombre": "DAHIANA MARIN", "full": "DAHIANA MARIN SANCHEZ", "dia": "2026-03-10"}, {"total_gestiones": 95, "efectivas": 9, "acuerdos": 1, "valor_acuerdos": 0.0, "tasa_contactabilidad": 9.5, "nombre": "DAHIANA MARIN", "full": "DAHIANA MARIN SANCHEZ", "dia": "2026-03-11"}, {"total_gestiones": 108, "efectivas": 8, "acuerdos": 2, "valor_acuerdos": 0.0, "tasa_contactabilidad": 7.4, "nombre": "DAHIANA MARIN", "full": "DAHIANA MARIN SANCHEZ", "dia": "2026-03-12"}, {"total_gestiones": 112, "efectivas": 23, "acuerdos": 1, "valor_acuerdos": 0.0, "tasa_contactabilidad": 20.5, "nombre": "DAHIANA MARIN", "full": "DAHIANA MARIN SANCHEZ", "dia": "2026-03-13"}, {"total_gestiones": 96, "efectivas": 13, "acuerdos": 1, "valor_acuerdos": 0.0, "tasa_contactabilidad": 13.5, "nombre": "DAHIANA MARIN", "full": "DAHIANA MARIN SANCHEZ", "dia": "2026-03-14"}, {"total_gestiones": 143, "efectivas": 14, "acuerdos": 0, "valor_acuerdos": 0.0, "tasa_contactabilidad": 9.8, "nombre": "DAHIANA MARIN", "full": "DAHIANA MARIN SANCHEZ", "dia": "2026-03-16"}, {"total_gestiones": 69, "efectivas": 11, "acuerdos": 2, "valor_acuerdos": 0.0, "tasa_contactabilidad": 15.9, "nombre": "DAHIANA MARIN", "full": "DAHIANA MARIN SANCHEZ", "dia": "2026-03-17"}, {"total_gestiones": 98, "efectivas": 19, "acuerdos": 3, "valor_acuerdos": 0.0, "tasa_contactabilidad": 19.4, "nombre": "DAHIANA MARIN", "full": "DAHIANA MARIN SANCHEZ", "dia": "2026-03-18"}, {"total_gestiones": 98, "efectivas": 8, "acuerdos": 0, "valor_acuerdos": 0.0, "tasa_contactabilidad": 8.2, "nombre": "DAHIANA MARIN", "full": "DAHIANA MARIN SANCHEZ", "dia": "2026-03-19"}, {"total_gestiones": 105, "efectivas": 8, "acuerdos": 1, "valor_acuerdos": 0.0, "tasa_contactabilidad": 7.6, "nombre": "DAHIANA MARIN", "full": "DAHIANA MARIN SANCHEZ", "dia": "2026-03-20"}, {"total_gestiones": 76, "efectivas": 7, "acuerdos": 2, "valor_acuerdos": 0.0, "tasa_contactabilidad": 9.2, "nombre": "DAHIANA MARIN", "full": "DAHIANA MARIN SANCHEZ", "dia": "2026-03-21"}, {"total_gestiones": 81, "efectivas": 17, "acuerdos": 3, "valor_acuerdos": 0.0, "tasa_contactabilidad": 21.0, "nombre": "DAHIANA MARIN", "full": "DAHIANA MARIN SANCHEZ", "dia": "2026-03-24"}, {"total_gestiones": 73, "efectivas": 9, "acuerdos": 2, "valor_acuerdos": 0.0, "tasa_contactabilidad": 12.3, "nombre": "DAHIANA MARIN", "full": "DAHIANA MARIN SANCHEZ", "dia": "2026-03-25"}, {"total_gestiones": 75, "efectivas": 21, "acuerdos": 4, "valor_acuerdos": 0.0, "tasa_contactabilidad": 28.0, "nombre": "DAHIANA MARIN", "full": "DAHIANA MARIN SANCHEZ", "dia": "2026-03-26"}, {"total_gestiones": 102, "efectivas": 17, "acuerdos": 3, "valor_acuerdos": 0.0, "tasa_contactabilidad": 16.7, "nombre": "DAHIANA MARIN", "full": "DAHIANA MARIN SANCHEZ", "dia": "2026-03-27"}, {"total_gestiones": 73, "efectivas": 13, "acuerdos": 1, "valor_acuerdos": 0.0, "tasa_contactabilidad": 17.8, "nombre": "DAHIANA MARIN", "full": "DAHIANA MARIN SANCHEZ", "dia": "2026-03-28"}, {"total_gestiones": 68, "efectivas": 14, "acuerdos": 3, "valor_acuerdos": 0.0, "tasa_contactabilidad": 20.6, "nombre": "DAHIANA MARIN", "full": "DAHIANA MARIN SANCHEZ", "dia": "2026-03-30"}, {"total_gestiones": 99, "efectivas": 9, "acuerdos": 0, "valor_acuerdos": 0.0, "tasa_contactabilidad": 9.1, "nombre": "DAHIANA MARIN", "full": "DAHIANA MARIN SANCHEZ", "dia": "2026-03-31"}, {"total_gestiones": 145, "efectivas": 14, "acuerdos": 1, "valor_acuerdos": 0.0, "tasa_contactabilidad": 9.7, "nombre": "DAHIANA MARIN", "full": "DAHIANA MARIN SANCHEZ", "dia": "2026-04-01"}, {"total_gestiones": 99, "efectivas": 16, "acuerdos": 2, "valor_acuerdos": 0.0, "tasa_contactabilidad": 16.2, "nombre": "DAHIANA MARIN", "full": "DAHIANA MARIN SANCHEZ", "dia": "2026-04-06"}, {"total_gestiones": 26, "efectivas": 4, "acuerdos": 1, "valor_acuerdos": 0.0, "tasa_contactabilidad": 15.4, "nombre": "DAHIANA MARIN", "full": "DAHIANA MARIN SANCHEZ", "dia": "2026-04-07"}, {"total_gestiones": 61, "efectivas": 12, "acuerdos": 1, "valor_acuerdos": 0.0, "tasa_contactabilidad": 19.7, "nombre": "DAHIANA MARIN", "full": "DAHIANA MARIN SANCHEZ", "dia": "2026-04-08"}, {"total_gestiones": 92, "efectivas": 20, "acuerdos": 5, "valor_acuerdos": 0.0, "tasa_contactabilidad": 21.7, "nombre": "DAHIANA MARIN", "full": "DAHIANA MARIN SANCHEZ", "dia": "2026-04-09"}, {"total_gestiones": 79, "efectivas": 5, "acuerdos": 0, "valor_acuerdos": 0.0, "tasa_contactabilidad": 6.3, "nombre": "DAHIANA MARIN", "full": "DAHIANA MARIN SANCHEZ", "dia": "2026-04-10"}, {"total_gestiones": 49, "efectivas": 12, "acuerdos": 3, "valor_acuerdos": 0.0, "tasa_contactabilidad": 24.5, "nombre": "DAHIANA MARIN", "full": "DAHIANA MARIN SANCHEZ", "dia": "2026-04-11"}, {"total_gestiones": 68, "efectivas": 7, "acuerdos": 1, "valor_acuerdos": 0.0, "tasa_contactabilidad": 10.3, "nombre": "DAHIANA MARIN", "full": "DAHIANA MARIN SANCHEZ", "dia": "2026-04-14"}, {"total_gestiones": 99, "efectivas": 25, "acuerdos": 4, "valor_acuerdos": 0.0, "tasa_contactabilidad": 25.3, "nombre": "DAHIANA MARIN", "full": "DAHIANA MARIN SANCHEZ", "dia": "2026-04-15"}, {"total_gestiones": 130, "efectivas": 32, "acuerdos": 4, "valor_acuerdos": 0.0, "tasa_contactabilidad": 24.6, "nombre": "DAHIANA MARIN", "full": "DAHIANA MARIN SANCHEZ", "dia": "2026-04-16"}, {"total_gestiones": 22, "efectivas": 11, "acuerdos": 1, "valor_acuerdos": 0.0, "tasa_contactabilidad": 50.0, "nombre": "DAHIANA MARIN", "full": "DAHIANA MARIN SANCHEZ", "dia": "2026-04-17"}, {"total_gestiones": 77, "efectivas": 20, "acuerdos": 1, "valor_acuerdos": 0.0, "tasa_contactabilidad": 26.0, "nombre": "DAHIANA MARIN", "full": "DAHIANA MARIN SANCHEZ", "dia": "2026-04-18"}, {"total_gestiones": 137, "efectivas": 39, "acuerdos": 4, "valor_acuerdos": 0.0, "tasa_contactabilidad": 28.5, "nombre": "DAHIANA MARIN", "full": "DAHIANA MARIN SANCHEZ", "dia": "2026-04-20"}, {"total_gestiones": 143, "efectivas": 20, "acuerdos": 2, "valor_acuerdos": 0.0, "tasa_contactabilidad": 14.0, "nombre": "DAHIANA MARIN", "full": "DAHIANA MARIN SANCHEZ", "dia": "2026-04-21"}, {"total_gestiones": 103, "efectivas": 17, "acuerdos": 2, "valor_acuerdos": 0.0, "tasa_contactabilidad": 16.5, "nombre": "DAHIANA MARIN", "full": "DAHIANA MARIN SANCHEZ", "dia": "2026-04-22"}, {"total_gestiones": 22, "efectivas": 2, "acuerdos": 2, "valor_acuerdos": 0.0, "tasa_contactabilidad": 9.1, "nombre": "ESTEFANIA VELEZ", "full": "ESTEFANIA VELEZ FERNANDEZ", "dia": "2026-02-09"}, {"total_gestiones": 42, "efectivas": 8, "acuerdos": 1, "valor_acuerdos": 0.0, "tasa_contactabilidad": 19.0, "nombre": "ESTEFANIA VELEZ", "full": "ESTEFANIA VELEZ FERNANDEZ", "dia": "2026-02-10"}, {"total_gestiones": 61, "efectivas": 12, "acuerdos": 1, "valor_acuerdos": 0.0, "tasa_contactabilidad": 19.7, "nombre": "ESTEFANIA VELEZ", "full": "ESTEFANIA VELEZ FERNANDEZ", "dia": "2026-02-11"}, {"total_gestiones": 57, "efectivas": 5, "acuerdos": 0, "valor_acuerdos": 0.0, "tasa_contactabilidad": 8.8, "nombre": "ESTEFANIA VELEZ", "full": "ESTEFANIA VELEZ FERNANDEZ", "dia": "2026-02-12"}, {"total_gestiones": 64, "efectivas": 4, "acuerdos": 0, "valor_acuerdos": 0.0, "tasa_contactabilidad": 6.2, "nombre": "ESTEFANIA VELEZ", "full": "ESTEFANIA VELEZ FERNANDEZ", "dia": "2026-02-13"}, {"total_gestiones": 37, "efectivas": 8, "acuerdos": 0, "valor_acuerdos": 0.0, "tasa_contactabilidad": 21.6, "nombre": "ESTEFANIA VELEZ", "full": "ESTEFANIA VELEZ FERNANDEZ", "dia": "2026-02-14"}, {"total_gestiones": 91, "efectivas": 12, "acuerdos": 2, "valor_acuerdos": 0.0, "tasa_contactabilidad": 13.2, "nombre": "ESTEFANIA VELEZ", "full": "ESTEFANIA VELEZ FERNANDEZ", "dia": "2026-02-18"}, {"total_gestiones": 61, "efectivas": 5, "acuerdos": 1, "valor_acuerdos": 0.0, "tasa_contactabilidad": 8.2, "nombre": "ESTEFANIA VELEZ", "full": "ESTEFANIA VELEZ FERNANDEZ", "dia": "2026-02-19"}, {"total_gestiones": 100, "efectivas": 3, "acuerdos": 0, "valor_acuerdos": 0.0, "tasa_contactabilidad": 3.0, "nombre": "ESTEFANIA VELEZ", "full": "ESTEFANIA VELEZ FERNANDEZ", "dia": "2026-02-20"}, {"total_gestiones": 55, "efectivas": 7, "acuerdos": 0, "valor_acuerdos": 0.0, "tasa_contactabilidad": 12.7, "nombre": "ESTEFANIA VELEZ", "full": "ESTEFANIA VELEZ FERNANDEZ", "dia": "2026-02-21"}, {"total_gestiones": 85, "efectivas": 10, "acuerdos": 0, "valor_acuerdos": 0.0, "tasa_contactabilidad": 11.8, "nombre": "ESTEFANIA VELEZ", "full": "ESTEFANIA VELEZ FERNANDEZ", "dia": "2026-02-25"}, {"total_gestiones": 98, "efectivas": 10, "acuerdos": 2, "valor_acuerdos": 0.0, "tasa_contactabilidad": 10.2, "nombre": "ESTEFANIA VELEZ", "full": "ESTEFANIA VELEZ FERNANDEZ", "dia": "2026-02-26"}, {"total_gestiones": 99, "efectivas": 4, "acuerdos": 1, "valor_acuerdos": 0.0, "tasa_contactabilidad": 4.0, "nombre": "ESTEFANIA VELEZ", "full": "ESTEFANIA VELEZ FERNANDEZ", "dia": "2026-02-27"}, {"total_gestiones": 56, "efectivas": 7, "acuerdos": 0, "valor_acuerdos": 0.0, "tasa_contactabilidad": 12.5, "nombre": "ESTEFANIA VELEZ", "full": "ESTEFANIA VELEZ FERNANDEZ", "dia": "2026-02-28"}, {"total_gestiones": 77, "efectivas": 11, "acuerdos": 2, "valor_acuerdos": 0.0, "tasa_contactabilidad": 14.3, "nombre": "ESTEFANIA VELEZ", "full": "ESTEFANIA VELEZ FERNANDEZ", "dia": "2026-03-02"}, {"total_gestiones": 55, "efectivas": 7, "acuerdos": 2, "valor_acuerdos": 0.0, "tasa_contactabilidad": 12.7, "nombre": "ESTEFANIA VELEZ", "full": "ESTEFANIA VELEZ FERNANDEZ", "dia": "2026-03-03"}, {"total_gestiones": 46, "efectivas": 15, "acuerdos": 4, "valor_acuerdos": 0.0, "tasa_contactabilidad": 32.6, "nombre": "ESTEFANIA VELEZ", "full": "ESTEFANIA VELEZ FERNANDEZ", "dia": "2026-03-04"}, {"total_gestiones": 88, "efectivas": 9, "acuerdos": 4, "valor_acuerdos": 0.0, "tasa_contactabilidad": 10.2, "nombre": "ESTEFANIA VELEZ", "full": "ESTEFANIA VELEZ FERNANDEZ", "dia": "2026-03-12"}, {"total_gestiones": 122, "efectivas": 17, "acuerdos": 2, "valor_acuerdos": 0.0, "tasa_contactabilidad": 13.9, "nombre": "ESTEFANIA VELEZ", "full": "ESTEFANIA VELEZ FERNANDEZ", "dia": "2026-03-13"}, {"total_gestiones": 81, "efectivas": 23, "acuerdos": 2, "valor_acuerdos": 0.0, "tasa_contactabilidad": 28.4, "nombre": "ESTEFANIA VELEZ", "full": "ESTEFANIA VELEZ FERNANDEZ", "dia": "2026-03-14"}, {"total_gestiones": 138, "efectivas": 23, "acuerdos": 2, "valor_acuerdos": 0.0, "tasa_contactabilidad": 16.7, "nombre": "ESTEFANIA VELEZ", "full": "ESTEFANIA VELEZ FERNANDEZ", "dia": "2026-03-16"}, {"total_gestiones": 110, "efectivas": 8, "acuerdos": 2, "valor_acuerdos": 0.0, "tasa_contactabilidad": 7.3, "nombre": "ESTEFANIA VELEZ", "full": "ESTEFANIA VELEZ FERNANDEZ", "dia": "2026-03-17"}, {"total_gestiones": 141, "efectivas": 10, "acuerdos": 2, "valor_acuerdos": 0.0, "tasa_contactabilidad": 7.1, "nombre": "ESTEFANIA VELEZ", "full": "ESTEFANIA VELEZ FERNANDEZ", "dia": "2026-03-18"}, {"total_gestiones": 113, "efectivas": 9, "acuerdos": 1, "valor_acuerdos": 0.0, "tasa_contactabilidad": 8.0, "nombre": "ESTEFANIA VELEZ", "full": "ESTEFANIA VELEZ FERNANDEZ", "dia": "2026-03-19"}, {"total_gestiones": 112, "efectivas": 7, "acuerdos": 2, "valor_acuerdos": 0.0, "tasa_contactabilidad": 6.2, "nombre": "ESTEFANIA VELEZ", "full": "ESTEFANIA VELEZ FERNANDEZ", "dia": "2026-03-20"}, {"total_gestiones": 88, "efectivas": 14, "acuerdos": 1, "valor_acuerdos": 0.0, "tasa_contactabilidad": 15.9, "nombre": "ESTEFANIA VELEZ", "full": "ESTEFANIA VELEZ FERNANDEZ", "dia": "2026-03-21"}, {"total_gestiones": 96, "efectivas": 14, "acuerdos": 0, "valor_acuerdos": 0.0, "tasa_contactabilidad": 14.6, "nombre": "ESTEFANIA VELEZ", "full": "ESTEFANIA VELEZ FERNANDEZ", "dia": "2026-03-24"}, {"total_gestiones": 83, "efectivas": 15, "acuerdos": 2, "valor_acuerdos": 0.0, "tasa_contactabilidad": 18.1, "nombre": "ESTEFANIA VELEZ", "full": "ESTEFANIA VELEZ FERNANDEZ", "dia": "2026-03-25"}, {"total_gestiones": 90, "efectivas": 11, "acuerdos": 1, "valor_acuerdos": 0.0, "tasa_contactabilidad": 12.2, "nombre": "ESTEFANIA VELEZ", "full": "ESTEFANIA VELEZ FERNANDEZ", "dia": "2026-03-26"}, {"total_gestiones": 79, "efectivas": 11, "acuerdos": 4, "valor_acuerdos": 0.0, "tasa_contactabilidad": 13.9, "nombre": "ESTEFANIA VELEZ", "full": "ESTEFANIA VELEZ FERNANDEZ", "dia": "2026-03-27"}, {"total_gestiones": 85, "efectivas": 6, "acuerdos": 0, "valor_acuerdos": 0.0, "tasa_contactabilidad": 7.1, "nombre": "ESTEFANIA VELEZ", "full": "ESTEFANIA VELEZ FERNANDEZ", "dia": "2026-03-28"}, {"total_gestiones": 94, "efectivas": 28, "acuerdos": 1, "valor_acuerdos": 0.0, "tasa_contactabilidad": 29.8, "nombre": "ESTEFANIA VELEZ", "full": "ESTEFANIA VELEZ FERNANDEZ", "dia": "2026-03-30"}, {"total_gestiones": 109, "efectivas": 8, "acuerdos": 1, "valor_acuerdos": 0.0, "tasa_contactabilidad": 7.3, "nombre": "ESTEFANIA VELEZ", "full": "ESTEFANIA VELEZ FERNANDEZ", "dia": "2026-03-31"}, {"total_gestiones": 189, "efectivas": 10, "acuerdos": 1, "valor_acuerdos": 0.0, "tasa_contactabilidad": 5.3, "nombre": "ESTEFANIA VELEZ", "full": "ESTEFANIA VELEZ FERNANDEZ", "dia": "2026-04-01"}, {"total_gestiones": 105, "efectivas": 8, "acuerdos": 0, "valor_acuerdos": 0.0, "tasa_contactabilidad": 7.6, "nombre": "ESTEFANIA VELEZ", "full": "ESTEFANIA VELEZ FERNANDEZ", "dia": "2026-04-04"}, {"total_gestiones": 142, "efectivas": 20, "acuerdos": 3, "valor_acuerdos": 0.0, "tasa_contactabilidad": 14.1, "nombre": "ESTEFANIA VELEZ", "full": "ESTEFANIA VELEZ FERNANDEZ", "dia": "2026-04-06"}, {"total_gestiones": 81, "efectivas": 3, "acuerdos": 0, "valor_acuerdos": 0.0, "tasa_contactabilidad": 3.7, "nombre": "ESTEFANIA VELEZ", "full": "ESTEFANIA VELEZ FERNANDEZ", "dia": "2026-04-07"}, {"total_gestiones": 107, "efectivas": 17, "acuerdos": 2, "valor_acuerdos": 0.0, "tasa_contactabilidad": 15.9, "nombre": "ESTEFANIA VELEZ", "full": "ESTEFANIA VELEZ FERNANDEZ", "dia": "2026-04-08"}, {"total_gestiones": 122, "efectivas": 15, "acuerdos": 2, "valor_acuerdos": 0.0, "tasa_contactabilidad": 12.3, "nombre": "ESTEFANIA VELEZ", "full": "ESTEFANIA VELEZ FERNANDEZ", "dia": "2026-04-09"}, {"total_gestiones": 110, "efectivas": 13, "acuerdos": 2, "valor_acuerdos": 0.0, "tasa_contactabilidad": 11.8, "nombre": "ESTEFANIA VELEZ", "full": "ESTEFANIA VELEZ FERNANDEZ", "dia": "2026-04-10"}, {"total_gestiones": 67, "efectivas": 6, "acuerdos": 1, "valor_acuerdos": 0.0, "tasa_contactabilidad": 9.0, "nombre": "ESTEFANIA VELEZ", "full": "ESTEFANIA VELEZ FERNANDEZ", "dia": "2026-04-11"}, {"total_gestiones": 28, "efectivas": 15, "acuerdos": 1, "valor_acuerdos": 0.0, "tasa_contactabilidad": 53.6, "nombre": "ESTEFANIA VELEZ", "full": "ESTEFANIA VELEZ FERNANDEZ", "dia": "2026-04-13"}, {"total_gestiones": 87, "efectivas": 13, "acuerdos": 2, "valor_acuerdos": 0.0, "tasa_contactabilidad": 14.9, "nombre": "ESTEFANIA VELEZ", "full": "ESTEFANIA VELEZ FERNANDEZ", "dia": "2026-04-14"}, {"total_gestiones": 137, "efectivas": 32, "acuerdos": 2, "valor_acuerdos": 0.0, "tasa_contactabilidad": 23.4, "nombre": "ESTEFANIA VELEZ", "full": "ESTEFANIA VELEZ FERNANDEZ", "dia": "2026-04-15"}, {"total_gestiones": 93, "efectivas": 7, "acuerdos": 1, "valor_acuerdos": 0.0, "tasa_contactabilidad": 7.5, "nombre": "ESTEFANIA VELEZ", "full": "ESTEFANIA VELEZ FERNANDEZ", "dia": "2026-04-16"}, {"total_gestiones": 115, "efectivas": 13, "acuerdos": 1, "valor_acuerdos": 0.0, "tasa_contactabilidad": 11.3, "nombre": "ESTEFANIA VELEZ", "full": "ESTEFANIA VELEZ FERNANDEZ", "dia": "2026-04-17"}, {"total_gestiones": 96, "efectivas": 16, "acuerdos": 1, "valor_acuerdos": 0.0, "tasa_contactabilidad": 16.7, "nombre": "ESTEFANIA VELEZ", "full": "ESTEFANIA VELEZ FERNANDEZ", "dia": "2026-04-18"}, {"total_gestiones": 165, "efectivas": 16, "acuerdos": 0, "valor_acuerdos": 0.0, "tasa_contactabilidad": 9.7, "nombre": "ESTEFANIA VELEZ", "full": "ESTEFANIA VELEZ FERNANDEZ", "dia": "2026-04-20"}, {"total_gestiones": 107, "efectivas": 13, "acuerdos": 2, "valor_acuerdos": 0.0, "tasa_contactabilidad": 12.1, "nombre": "ESTEFANIA VELEZ", "full": "ESTEFANIA VELEZ FERNANDEZ", "dia": "2026-04-21"}, {"total_gestiones": 157, "efectivas": 22, "acuerdos": 2, "valor_acuerdos": 0.0, "tasa_contactabilidad": 14.0, "nombre": "ESTEFANIA VELEZ", "full": "ESTEFANIA VELEZ FERNANDEZ", "dia": "2026-04-22"}, {"total_gestiones": 66, "efectivas": 2, "acuerdos": 1, "valor_acuerdos": 0.0, "tasa_contactabilidad": 3.0, "nombre": "JAIME MAZO", "full": "JAIME ALEJANDRO MAZO CIRO", "dia": "2026-02-27"}, {"total_gestiones": 59, "efectivas": 1, "acuerdos": 0, "valor_acuerdos": 0.0, "tasa_contactabilidad": 1.7, "nombre": "JAIME MAZO", "full": "JAIME ALEJANDRO MAZO CIRO", "dia": "2026-02-28"}, {"total_gestiones": 59, "efectivas": 7, "acuerdos": 1, "valor_acuerdos": 0.0, "tasa_contactabilidad": 11.9, "nombre": "JAIME MAZO", "full": "JAIME ALEJANDRO MAZO CIRO", "dia": "2026-03-02"}, {"total_gestiones": 91, "efectivas": 18, "acuerdos": 0, "valor_acuerdos": 0.0, "tasa_contactabilidad": 19.8, "nombre": "JAIME MAZO", "full": "JAIME ALEJANDRO MAZO CIRO", "dia": "2026-03-03"}, {"total_gestiones": 90, "efectivas": 17, "acuerdos": 3, "valor_acuerdos": 0.0, "tasa_contactabilidad": 18.9, "nombre": "JAIME MAZO", "full": "JAIME ALEJANDRO MAZO CIRO", "dia": "2026-03-04"}, {"total_gestiones": 126, "efectivas": 18, "acuerdos": 4, "valor_acuerdos": 0.0, "tasa_contactabilidad": 14.3, "nombre": "JAIME MAZO", "full": "JAIME ALEJANDRO MAZO CIRO", "dia": "2026-03-05"}, {"total_gestiones": 126, "efectivas": 17, "acuerdos": 6, "valor_acuerdos": 0.0, "tasa_contactabilidad": 13.5, "nombre": "JAIME MAZO", "full": "JAIME ALEJANDRO MAZO CIRO", "dia": "2026-03-06"}, {"total_gestiones": 86, "efectivas": 13, "acuerdos": 1, "valor_acuerdos": 0.0, "tasa_contactabilidad": 15.1, "nombre": "JAIME MAZO", "full": "JAIME ALEJANDRO MAZO CIRO", "dia": "2026-03-07"}, {"total_gestiones": 174, "efectivas": 18, "acuerdos": 4, "valor_acuerdos": 0.0, "tasa_contactabilidad": 10.3, "nombre": "JAIME MAZO", "full": "JAIME ALEJANDRO MAZO CIRO", "dia": "2026-03-09"}, {"total_gestiones": 110, "efectivas": 12, "acuerdos": 2, "valor_acuerdos": 0.0, "tasa_contactabilidad": 10.9, "nombre": "JAIME MAZO", "full": "JAIME ALEJANDRO MAZO CIRO", "dia": "2026-03-10"}, {"total_gestiones": 188, "efectivas": 11, "acuerdos": 0, "valor_acuerdos": 0.0, "tasa_contactabilidad": 5.9, "nombre": "JAIME MAZO", "full": "JAIME ALEJANDRO MAZO CIRO", "dia": "2026-03-11"}, {"total_gestiones": 118, "efectivas": 18, "acuerdos": 8, "valor_acuerdos": 0.0, "tasa_contactabilidad": 15.3, "nombre": "JAIME MAZO", "full": "JAIME ALEJANDRO MAZO CIRO", "dia": "2026-03-12"}, {"total_gestiones": 127, "efectivas": 23, "acuerdos": 2, "valor_acuerdos": 0.0, "tasa_contactabilidad": 18.1, "nombre": "JAIME MAZO", "full": "JAIME ALEJANDRO MAZO CIRO", "dia": "2026-03-13"}, {"total_gestiones": 131, "efectivas": 21, "acuerdos": 1, "valor_acuerdos": 0.0, "tasa_contactabilidad": 16.0, "nombre": "JAIME MAZO", "full": "JAIME ALEJANDRO MAZO CIRO", "dia": "2026-03-14"}, {"total_gestiones": 165, "efectivas": 26, "acuerdos": 1, "valor_acuerdos": 0.0, "tasa_contactabilidad": 15.8, "nombre": "JAIME MAZO", "full": "JAIME ALEJANDRO MAZO CIRO", "dia": "2026-03-16"}, {"total_gestiones": 173, "efectivas": 10, "acuerdos": 1, "valor_acuerdos": 0.0, "tasa_contactabilidad": 5.8, "nombre": "JAIME MAZO", "full": "JAIME ALEJANDRO MAZO CIRO", "dia": "2026-03-17"}, {"total_gestiones": 166, "efectivas": 17, "acuerdos": 6, "valor_acuerdos": 0.0, "tasa_contactabilidad": 10.2, "nombre": "JAIME MAZO", "full": "JAIME ALEJANDRO MAZO CIRO", "dia": "2026-03-18"}, {"total_gestiones": 145, "efectivas": 10, "acuerdos": 2, "valor_acuerdos": 0.0, "tasa_contactabilidad": 6.9, "nombre": "JAIME MAZO", "full": "JAIME ALEJANDRO MAZO CIRO", "dia": "2026-03-19"}, {"total_gestiones": 26, "efectivas": 2, "acuerdos": 1, "valor_acuerdos": 0.0, "tasa_contactabilidad": 7.7, "nombre": "JAIME MAZO", "full": "JAIME ALEJANDRO MAZO CIRO", "dia": "2026-03-20"}, {"total_gestiones": 120, "efectivas": 9, "acuerdos": 1, "valor_acuerdos": 0.0, "tasa_contactabilidad": 7.5, "nombre": "JAIME MAZO", "full": "JAIME ALEJANDRO MAZO CIRO", "dia": "2026-03-21"}, {"total_gestiones": 229, "efectivas": 18, "acuerdos": 2, "valor_acuerdos": 0.0, "tasa_contactabilidad": 7.9, "nombre": "JAIME MAZO", "full": "JAIME ALEJANDRO MAZO CIRO", "dia": "2026-03-24"}, {"total_gestiones": 181, "efectivas": 16, "acuerdos": 3, "valor_acuerdos": 0.0, "tasa_contactabilidad": 8.8, "nombre": "JAIME MAZO", "full": "JAIME ALEJANDRO MAZO CIRO", "dia": "2026-03-25"}, {"total_gestiones": 144, "efectivas": 21, "acuerdos": 6, "valor_acuerdos": 0.0, "tasa_contactabilidad": 14.6, "nombre": "JAIME MAZO", "full": "JAIME ALEJANDRO MAZO CIRO", "dia": "2026-03-26"}, {"total_gestiones": 127, "efectivas": 11, "acuerdos": 1, "valor_acuerdos": 0.0, "tasa_contactabilidad": 8.7, "nombre": "JAIME MAZO", "full": "JAIME ALEJANDRO MAZO CIRO", "dia": "2026-03-28"}, {"total_gestiones": 146, "efectivas": 15, "acuerdos": 1, "valor_acuerdos": 0.0, "tasa_contactabilidad": 10.3, "nombre": "JAIME MAZO", "full": "JAIME ALEJANDRO MAZO CIRO", "dia": "2026-03-30"}, {"total_gestiones": 78, "efectivas": 6, "acuerdos": 0, "valor_acuerdos": 0.0, "tasa_contactabilidad": 7.7, "nombre": "JAIME MAZO", "full": "JAIME ALEJANDRO MAZO CIRO", "dia": "2026-03-31"}, {"total_gestiones": 111, "efectivas": 13, "acuerdos": 1, "valor_acuerdos": 0.0, "tasa_contactabilidad": 11.7, "nombre": "JAIME MAZO", "full": "JAIME ALEJANDRO MAZO CIRO", "dia": "2026-04-01"}, {"total_gestiones": 114, "efectivas": 13, "acuerdos": 4, "valor_acuerdos": 0.0, "tasa_contactabilidad": 11.4, "nombre": "JAIME MAZO", "full": "JAIME ALEJANDRO MAZO CIRO", "dia": "2026-04-04"}, {"total_gestiones": 124, "efectivas": 19, "acuerdos": 5, "valor_acuerdos": 0.0, "tasa_contactabilidad": 15.3, "nombre": "JAIME MAZO", "full": "JAIME ALEJANDRO MAZO CIRO", "dia": "2026-04-06"}, {"total_gestiones": 96, "efectivas": 11, "acuerdos": 2, "valor_acuerdos": 0.0, "tasa_contactabilidad": 11.5, "nombre": "JAIME MAZO", "full": "JAIME ALEJANDRO MAZO CIRO", "dia": "2026-04-07"}, {"total_gestiones": 1, "efectivas": 0, "acuerdos": 0, "valor_acuerdos": 0.0, "tasa_contactabilidad": 0.0, "nombre": "JAIME MAZO", "full": "JAIME ALEJANDRO MAZO CIRO", "dia": "2026-04-08"}, {"total_gestiones": 1, "efectivas": 0, "acuerdos": 0, "valor_acuerdos": 0.0, "tasa_contactabilidad": 0.0, "nombre": "JAIME MAZO", "full": "JAIME ALEJANDRO MAZO CIRO", "dia": "2026-04-16"}, {"total_gestiones": 200, "efectivas": 25, "acuerdos": 2, "valor_acuerdos": 0.0, "tasa_contactabilidad": 12.5, "nombre": "JAIME MAZO", "full": "JAIME ALEJANDRO MAZO CIRO", "dia": "2026-04-20"}, {"total_gestiones": 193, "efectivas": 24, "acuerdos": 2, "valor_acuerdos": 0.0, "tasa_contactabilidad": 12.4, "nombre": "JAIME MAZO", "full": "JAIME ALEJANDRO MAZO CIRO", "dia": "2026-04-21"}, {"total_gestiones": 143, "efectivas": 17, "acuerdos": 3, "valor_acuerdos": 0.0, "tasa_contactabilidad": 11.9, "nombre": "JAIME MAZO", "full": "JAIME ALEJANDRO MAZO CIRO", "dia": "2026-04-22"}, {"total_gestiones": 27, "efectivas": 3, "acuerdos": 2, "valor_acuerdos": 0.0, "tasa_contactabilidad": 11.1, "nombre": "JULIANA ALVAREZ", "full": "JULIANA ALVAREZ MESA", "dia": "2026-02-09"}, {"total_gestiones": 30, "efectivas": 10, "acuerdos": 3, "valor_acuerdos": 0.0, "tasa_contactabilidad": 33.3, "nombre": "JULIANA ALVAREZ", "full": "JULIANA ALVAREZ MESA", "dia": "2026-02-10"}, {"total_gestiones": 128, "efectivas": 15, "acuerdos": 6, "valor_acuerdos": 0.0, "tasa_contactabilidad": 11.7, "nombre": "JULIANA ALVAREZ", "full": "JULIANA ALVAREZ MESA", "dia": "2026-02-11"}, {"total_gestiones": 70, "efectivas": 6, "acuerdos": 2, "valor_acuerdos": 0.0, "tasa_contactabilidad": 8.6, "nombre": "JULIANA ALVAREZ", "full": "JULIANA ALVAREZ MESA", "dia": "2026-02-12"}, {"total_gestiones": 103, "efectivas": 5, "acuerdos": 1, "valor_acuerdos": 0.0, "tasa_contactabilidad": 4.9, "nombre": "JULIANA ALVAREZ", "full": "JULIANA ALVAREZ MESA", "dia": "2026-02-13"}, {"total_gestiones": 43, "efectivas": 3, "acuerdos": 0, "valor_acuerdos": 0.0, "tasa_contactabilidad": 7.0, "nombre": "JULIANA ALVAREZ", "full": "JULIANA ALVAREZ MESA", "dia": "2026-02-14"}, {"total_gestiones": 48, "efectivas": 8, "acuerdos": 2, "valor_acuerdos": 0.0, "tasa_contactabilidad": 16.7, "nombre": "JULIANA ALVAREZ", "full": "JULIANA ALVAREZ MESA", "dia": "2026-02-16"}, {"total_gestiones": 60, "efectivas": 7, "acuerdos": 2, "valor_acuerdos": 0.0, "tasa_contactabilidad": 11.7, "nombre": "JULIANA ALVAREZ", "full": "JULIANA ALVAREZ MESA", "dia": "2026-02-17"}, {"total_gestiones": 110, "efectivas": 7, "acuerdos": 1, "valor_acuerdos": 0.0, "tasa_contactabilidad": 6.4, "nombre": "JULIANA ALVAREZ", "full": "JULIANA ALVAREZ MESA", "dia": "2026-02-18"}, {"total_gestiones": 33, "efectivas": 11, "acuerdos": 3, "valor_acuerdos": 0.0, "tasa_contactabilidad": 33.3, "nombre": "JULIANA ALVAREZ", "full": "JULIANA ALVAREZ MESA", "dia": "2026-02-19"}, {"total_gestiones": 54, "efectivas": 10, "acuerdos": 0, "valor_acuerdos": 0.0, "tasa_contactabilidad": 18.5, "nombre": "JULIANA ALVAREZ", "full": "JULIANA ALVAREZ MESA", "dia": "2026-02-20"}, {"total_gestiones": 109, "efectivas": 11, "acuerdos": 1, "valor_acuerdos": 0.0, "tasa_contactabilidad": 10.1, "nombre": "JULIANA ALVAREZ", "full": "JULIANA ALVAREZ MESA", "dia": "2026-02-21"}, {"total_gestiones": 34, "efectivas": 2, "acuerdos": 0, "valor_acuerdos": 0.0, "tasa_contactabilidad": 5.9, "nombre": "MARTA BALZAC", "full": "MARTA CECILIA BALZAC SALAZAR", "dia": "2026-02-09"}, {"total_gestiones": 45, "efectivas": 18, "acuerdos": 0, "valor_acuerdos": 0.0, "tasa_contactabilidad": 40.0, "nombre": "MARTA BALZAC", "full": "MARTA CECILIA BALZAC SALAZAR", "dia": "2026-02-10"}, {"total_gestiones": 26, "efectivas": 1, "acuerdos": 0, "valor_acuerdos": 0.0, "tasa_contactabilidad": 3.8, "nombre": "MARTA BALZAC", "full": "MARTA CECILIA BALZAC SALAZAR", "dia": "2026-02-11"}, {"total_gestiones": 22, "efectivas": 2, "acuerdos": 1, "valor_acuerdos": 0.0, "tasa_contactabilidad": 9.1, "nombre": "MARTA BALZAC", "full": "MARTA CECILIA BALZAC SALAZAR", "dia": "2026-02-12"}, {"total_gestiones": 2, "efectivas": 0, "acuerdos": 0, "valor_acuerdos": 0.0, "tasa_contactabilidad": 0.0, "nombre": "SYLVANA MOLINA", "full": "SYLVANA MOLINA BALZAC", "dia": "2026-02-10"}, {"total_gestiones": 86, "efectivas": 1, "acuerdos": 1, "valor_acuerdos": 0.0, "tasa_contactabilidad": 1.2, "nombre": "SYLVANA MOLINA", "full": "SYLVANA MOLINA BALZAC", "dia": "2026-02-12"}, {"total_gestiones": 71, "efectivas": 0, "acuerdos": 0, "valor_acuerdos": 0.0, "tasa_contactabilidad": 0.0, "nombre": "SYLVANA MOLINA", "full": "SYLVANA MOLINA BALZAC", "dia": "2026-02-13"}, {"total_gestiones": 10, "efectivas": 3, "acuerdos": 3, "valor_acuerdos": 0.0, "tasa_contactabilidad": 30.0, "nombre": "SYLVANA MOLINA", "full": "SYLVANA MOLINA BALZAC", "dia": "2026-02-17"}, {"total_gestiones": 1, "efectivas": 0, "acuerdos": 0, "valor_acuerdos": 0.0, "tasa_contactabilidad": 0.0, "nombre": "SYLVANA MOLINA", "full": "SYLVANA MOLINA BALZAC", "dia": "2026-02-21"}, {"total_gestiones": 1, "efectivas": 0, "acuerdos": 0, "valor_acuerdos": 0.0, "tasa_contactabilidad": 0.0, "nombre": "SYLVANA MOLINA", "full": "SYLVANA MOLINA BALZAC", "dia": "2026-02-23"}, {"total_gestiones": 20, "efectivas": 0, "acuerdos": 0, "valor_acuerdos": 0.0, "tasa_contactabilidad": 0.0, "nombre": "SYLVANA MOLINA", "full": "SYLVANA MOLINA BALZAC", "dia": "2026-02-24"}, {"total_gestiones": 30, "efectivas": 0, "acuerdos": 0, "valor_acuerdos": 0.0, "tasa_contactabilidad": 0.0, "nombre": "SYLVANA MOLINA", "full": "SYLVANA MOLINA BALZAC", "dia": "2026-02-25"}, {"total_gestiones": 256, "efectivas": 23, "acuerdos": 0, "valor_acuerdos": 0.0, "tasa_contactabilidad": 9.0, "nombre": "SYLVANA MOLINA", "full": "SYLVANA MOLINA BALZAC", "dia": "2026-04-14"}, {"total_gestiones": 2, "efectivas": 1, "acuerdos": 1, "valor_acuerdos": 0.0, "tasa_contactabilidad": 50.0, "nombre": "SILVIA BALZAC", "full": "Silvia Balzac Salazar", "dia": "2026-02-12"}, {"total_gestiones": 13, "efectivas": 1, "acuerdos": 1, "valor_acuerdos": 0.0, "tasa_contactabilidad": 7.7, "nombre": "SILVIA BALZAC", "full": "Silvia Balzac Salazar", "dia": "2026-02-14"}, {"total_gestiones": 13, "efectivas": 4, "acuerdos": 2, "valor_acuerdos": 0.0, "tasa_contactabilidad": 30.8, "nombre": "SILVIA BALZAC", "full": "Silvia Balzac Salazar", "dia": "2026-02-16"}, {"total_gestiones": 2, "efectivas": 1, "acuerdos": 1, "valor_acuerdos": 0.0, "tasa_contactabilidad": 50.0, "nombre": "SILVIA BALZAC", "full": "Silvia Balzac Salazar", "dia": "2026-02-18"}, {"total_gestiones": 9, "efectivas": 3, "acuerdos": 2, "valor_acuerdos": 0.0, "tasa_contactabilidad": 33.3, "nombre": "SILVIA BALZAC", "full": "Silvia Balzac Salazar", "dia": "2026-02-21"}, {"total_gestiones": 23, "efectivas": 7, "acuerdos": 4, "valor_acuerdos": 0.0, "tasa_contactabilidad": 30.4, "nombre": "SILVIA BALZAC", "full": "Silvia Balzac Salazar", "dia": "2026-02-23"}, {"total_gestiones": 1, "efectivas": 0, "acuerdos": 0, "valor_acuerdos": 0.0, "tasa_contactabilidad": 0.0, "nombre": "SILVIA BALZAC", "full": "Silvia Balzac Salazar", "dia": "2026-02-25"}, {"total_gestiones": 1, "efectivas": 1, "acuerdos": 0, "valor_acuerdos": 0.0, "tasa_contactabilidad": 100.0, "nombre": "SILVIA BALZAC", "full": "Silvia Balzac Salazar", "dia": "2026-02-26"}, {"total_gestiones": 18, "efectivas": 0, "acuerdos": 0, "valor_acuerdos": 0.0, "tasa_contactabilidad": 0.0, "nombre": "SILVIA BALZAC", "full": "Silvia Balzac Salazar", "dia": "2026-03-02"}, {"total_gestiones": 35, "efectivas": 7, "acuerdos": 4, "valor_acuerdos": 0.0, "tasa_contactabilidad": 20.0, "nombre": "SILVIA BALZAC", "full": "Silvia Balzac Salazar", "dia": "2026-03-03"}, {"total_gestiones": 64, "efectivas": 5, "acuerdos": 3, "valor_acuerdos": 0.0, "tasa_contactabilidad": 7.8, "nombre": "SILVIA BALZAC", "full": "Silvia Balzac Salazar", "dia": "2026-03-04"}, {"total_gestiones": 94, "efectivas": 16, "acuerdos": 4, "valor_acuerdos": 0.0, "tasa_contactabilidad": 17.0, "nombre": "SILVIA BALZAC", "full": "Silvia Balzac Salazar", "dia": "2026-03-05"}, {"total_gestiones": 88, "efectivas": 16, "acuerdos": 3, "valor_acuerdos": 0.0, "tasa_contactabilidad": 18.2, "nombre": "SILVIA BALZAC", "full": "Silvia Balzac Salazar", "dia": "2026-03-06"}, {"total_gestiones": 8, "efectivas": 1, "acuerdos": 1, "valor_acuerdos": 0.0, "tasa_contactabilidad": 12.5, "nombre": "SILVIA BALZAC", "full": "Silvia Balzac Salazar", "dia": "2026-03-07"}, {"total_gestiones": 108, "efectivas": 25, "acuerdos": 4, "valor_acuerdos": 0.0, "tasa_contactabilidad": 23.1, "nombre": "SILVIA BALZAC", "full": "Silvia Balzac Salazar", "dia": "2026-03-09"}, {"total_gestiones": 151, "efectivas": 19, "acuerdos": 5, "valor_acuerdos": 0.0, "tasa_contactabilidad": 12.6, "nombre": "SILVIA BALZAC", "full": "Silvia Balzac Salazar", "dia": "2026-03-10"}, {"total_gestiones": 134, "efectivas": 15, "acuerdos": 2, "valor_acuerdos": 0.0, "tasa_contactabilidad": 11.2, "nombre": "SILVIA BALZAC", "full": "Silvia Balzac Salazar", "dia": "2026-03-11"}, {"total_gestiones": 8, "efectivas": 2, "acuerdos": 1, "valor_acuerdos": 0.0, "tasa_contactabilidad": 25.0, "nombre": "SILVIA BALZAC", "full": "Silvia Balzac Salazar", "dia": "2026-03-12"}, {"total_gestiones": 103, "efectivas": 16, "acuerdos": 2, "valor_acuerdos": 0.0, "tasa_contactabilidad": 15.5, "nombre": "SILVIA BALZAC", "full": "Silvia Balzac Salazar", "dia": "2026-03-13"}, {"total_gestiones": 90, "efectivas": 21, "acuerdos": 0, "valor_acuerdos": 0.0, "tasa_contactabilidad": 23.3, "nombre": "SILVIA BALZAC", "full": "Silvia Balzac Salazar", "dia": "2026-03-16"}, {"total_gestiones": 102, "efectivas": 5, "acuerdos": 3, "valor_acuerdos": 0.0, "tasa_contactabilidad": 4.9, "nombre": "SILVIA BALZAC", "full": "Silvia Balzac Salazar", "dia": "2026-03-17"}, {"total_gestiones": 3, "efectivas": 0, "acuerdos": 0, "valor_acuerdos": 0.0, "tasa_contactabilidad": 0.0, "nombre": "SILVIA BALZAC", "full": "Silvia Balzac Salazar", "dia": "2026-04-21"}, {"total_gestiones": 21, "efectivas": 0, "acuerdos": 0, "valor_acuerdos": 0.0, "tasa_contactabilidad": 0.0, "nombre": "TATIANA VERGARA", "full": "TATIANA VERGARA MONTOYA", "dia": "2026-02-09"}, {"total_gestiones": 32, "efectivas": 15, "acuerdos": 5, "valor_acuerdos": 0.0, "tasa_contactabilidad": 46.9, "nombre": "TATIANA VERGARA", "full": "TATIANA VERGARA MONTOYA", "dia": "2026-02-10"}, {"total_gestiones": 62, "efectivas": 1, "acuerdos": 0, "valor_acuerdos": 0.0, "tasa_contactabilidad": 1.6, "nombre": "TATIANA VERGARA", "full": "TATIANA VERGARA MONTOYA", "dia": "2026-02-11"}, {"total_gestiones": 90, "efectivas": 5, "acuerdos": 0, "valor_acuerdos": 0.0, "tasa_contactabilidad": 5.6, "nombre": "TATIANA VERGARA", "full": "TATIANA VERGARA MONTOYA", "dia": "2026-02-12"}, {"total_gestiones": 79, "efectivas": 2, "acuerdos": 2, "valor_acuerdos": 0.0, "tasa_contactabilidad": 2.5, "nombre": "TATIANA VERGARA", "full": "TATIANA VERGARA MONTOYA", "dia": "2026-02-13"}, {"total_gestiones": 48, "efectivas": 2, "acuerdos": 1, "valor_acuerdos": 0.0, "tasa_contactabilidad": 4.2, "nombre": "TATIANA VERGARA", "full": "TATIANA VERGARA MONTOYA", "dia": "2026-02-14"}, {"total_gestiones": 76, "efectivas": 5, "acuerdos": 1, "valor_acuerdos": 0.0, "tasa_contactabilidad": 6.6, "nombre": "TATIANA VERGARA", "full": "TATIANA VERGARA MONTOYA", "dia": "2026-02-16"}, {"total_gestiones": 54, "efectivas": 5, "acuerdos": 2, "valor_acuerdos": 0.0, "tasa_contactabilidad": 9.3, "nombre": "TATIANA VERGARA", "full": "TATIANA VERGARA MONTOYA", "dia": "2026-02-17"}, {"total_gestiones": 95, "efectivas": 1, "acuerdos": 1, "valor_acuerdos": 0.0, "tasa_contactabilidad": 1.1, "nombre": "TATIANA VERGARA", "full": "TATIANA VERGARA MONTOYA", "dia": "2026-02-18"}, {"total_gestiones": 103, "efectivas": 2, "acuerdos": 1, "valor_acuerdos": 0.0, "tasa_contactabilidad": 1.9, "nombre": "TATIANA VERGARA", "full": "TATIANA VERGARA MONTOYA", "dia": "2026-02-19"}, {"total_gestiones": 76, "efectivas": 3, "acuerdos": 1, "valor_acuerdos": 0.0, "tasa_contactabilidad": 3.9, "nombre": "TATIANA VERGARA", "full": "TATIANA VERGARA MONTOYA", "dia": "2026-02-20"}, {"total_gestiones": 62, "efectivas": 4, "acuerdos": 1, "valor_acuerdos": 0.0, "tasa_contactabilidad": 6.5, "nombre": "TATIANA VERGARA", "full": "TATIANA VERGARA MONTOYA", "dia": "2026-02-21"}, {"total_gestiones": 72, "efectivas": 10, "acuerdos": 1, "valor_acuerdos": 0.0, "tasa_contactabilidad": 13.9, "nombre": "TATIANA VERGARA", "full": "TATIANA VERGARA MONTOYA", "dia": "2026-02-23"}, {"total_gestiones": 52, "efectivas": 13, "acuerdos": 1, "valor_acuerdos": 0.0, "tasa_contactabilidad": 25.0, "nombre": "TATIANA VERGARA", "full": "TATIANA VERGARA MONTOYA", "dia": "2026-02-24"}, {"total_gestiones": 75, "efectivas": 3, "acuerdos": 0, "valor_acuerdos": 0.0, "tasa_contactabilidad": 4.0, "nombre": "TATIANA VERGARA", "full": "TATIANA VERGARA MONTOYA", "dia": "2026-02-25"}, {"total_gestiones": 30, "efectivas": 1, "acuerdos": 0, "valor_acuerdos": 0.0, "tasa_contactabilidad": 3.3, "nombre": "TATIANA VERGARA", "full": "TATIANA VERGARA MONTOYA", "dia": "2026-02-26"}, {"total_gestiones": 142, "efectivas": 5, "acuerdos": 1, "valor_acuerdos": 0.0, "tasa_contactabilidad": 3.5, "nombre": "TATIANA VERGARA", "full": "TATIANA VERGARA MONTOYA", "dia": "2026-02-27"}, {"total_gestiones": 79, "efectivas": 5, "acuerdos": 0, "valor_acuerdos": 0.0, "tasa_contactabilidad": 6.3, "nombre": "TATIANA VERGARA", "full": "TATIANA VERGARA MONTOYA", "dia": "2026-02-28"}, {"total_gestiones": 8, "efectivas": 2, "acuerdos": 0, "valor_acuerdos": 0.0, "tasa_contactabilidad": 25.0, "nombre": "YENIFER AGUDELO", "full": "YENIFER PAOLA AGUDELO MONTOYA", "dia": "2026-02-09"}, {"total_gestiones": 26, "efectivas": 10, "acuerdos": 0, "valor_acuerdos": 0.0, "tasa_contactabilidad": 38.5, "nombre": "YENIFER AGUDELO", "full": "YENIFER PAOLA AGUDELO MONTOYA", "dia": "2026-02-10"}, {"total_gestiones": 47, "efectivas": 4, "acuerdos": 1, "valor_acuerdos": 0.0, "tasa_contactabilidad": 8.5, "nombre": "YENIFER AGUDELO", "full": "YENIFER PAOLA AGUDELO MONTOYA", "dia": "2026-02-11"}, {"total_gestiones": 44, "efectivas": 3, "acuerdos": 1, "valor_acuerdos": 0.0, "tasa_contactabilidad": 6.8, "nombre": "YENIFER AGUDELO", "full": "YENIFER PAOLA AGUDELO MONTOYA", "dia": "2026-02-13"}, {"total_gestiones": 49, "efectivas": 5, "acuerdos": 1, "valor_acuerdos": 0.0, "tasa_contactabilidad": 10.2, "nombre": "YENIFER AGUDELO", "full": "YENIFER PAOLA AGUDELO MONTOYA", "dia": "2026-02-14"}, {"total_gestiones": 59, "efectivas": 7, "acuerdos": 0, "valor_acuerdos": 0.0, "tasa_contactabilidad": 11.9, "nombre": "YENIFER AGUDELO", "full": "YENIFER PAOLA AGUDELO MONTOYA", "dia": "2026-02-16"}, {"total_gestiones": 65, "efectivas": 4, "acuerdos": 2, "valor_acuerdos": 0.0, "tasa_contactabilidad": 6.2, "nombre": "YENIFER AGUDELO", "full": "YENIFER PAOLA AGUDELO MONTOYA", "dia": "2026-02-17"}, {"total_gestiones": 64, "efectivas": 5, "acuerdos": 1, "valor_acuerdos": 0.0, "tasa_contactabilidad": 7.8, "nombre": "YENIFER AGUDELO", "full": "YENIFER PAOLA AGUDELO MONTOYA", "dia": "2026-02-18"}, {"total_gestiones": 60, "efectivas": 5, "acuerdos": 2, "valor_acuerdos": 0.0, "tasa_contactabilidad": 8.3, "nombre": "YENIFER AGUDELO", "full": "YENIFER PAOLA AGUDELO MONTOYA", "dia": "2026-02-19"}, {"total_gestiones": 73, "efectivas": 4, "acuerdos": 1, "valor_acuerdos": 0.0, "tasa_contactabilidad": 5.5, "nombre": "YENIFER AGUDELO", "full": "YENIFER PAOLA AGUDELO MONTOYA", "dia": "2026-02-20"}, {"total_gestiones": 67, "efectivas": 5, "acuerdos": 0, "valor_acuerdos": 0.0, "tasa_contactabilidad": 7.5, "nombre": "YENIFER AGUDELO", "full": "YENIFER PAOLA AGUDELO MONTOYA", "dia": "2026-02-21"}, {"total_gestiones": 85, "efectivas": 7, "acuerdos": 2, "valor_acuerdos": 0.0, "tasa_contactabilidad": 8.2, "nombre": "YENIFER AGUDELO", "full": "YENIFER PAOLA AGUDELO MONTOYA", "dia": "2026-02-23"}, {"total_gestiones": 98, "efectivas": 8, "acuerdos": 1, "valor_acuerdos": 0.0, "tasa_contactabilidad": 8.2, "nombre": "YENIFER AGUDELO", "full": "YENIFER PAOLA AGUDELO MONTOYA", "dia": "2026-02-24"}, {"total_gestiones": 45, "efectivas": 7, "acuerdos": 3, "valor_acuerdos": 0.0, "tasa_contactabilidad": 15.6, "nombre": "YENIFER AGUDELO", "full": "YENIFER PAOLA AGUDELO MONTOYA", "dia": "2026-02-25"}, {"total_gestiones": 108, "efectivas": 2, "acuerdos": 0, "valor_acuerdos": 0.0, "tasa_contactabilidad": 1.9, "nombre": "YENIFER AGUDELO", "full": "YENIFER PAOLA AGUDELO MONTOYA", "dia": "2026-02-26"}, {"total_gestiones": 71, "efectivas": 5, "acuerdos": 3, "valor_acuerdos": 0.0, "tasa_contactabilidad": 7.0, "nombre": "YENIFER AGUDELO", "full": "YENIFER PAOLA AGUDELO MONTOYA", "dia": "2026-02-27"}, {"total_gestiones": 34, "efectivas": 6, "acuerdos": 0, "valor_acuerdos": 0.0, "tasa_contactabilidad": 17.6, "nombre": "YENIFER AGUDELO", "full": "YENIFER PAOLA AGUDELO MONTOYA", "dia": "2026-02-28"}, {"total_gestiones": 46, "efectivas": 10, "acuerdos": 0, "valor_acuerdos": 0.0, "tasa_contactabilidad": 21.7, "nombre": "YENIFER AGUDELO", "full": "YENIFER PAOLA AGUDELO MONTOYA", "dia": "2026-03-02"}, {"total_gestiones": 32, "efectivas": 4, "acuerdos": 0, "valor_acuerdos": 0.0, "tasa_contactabilidad": 12.5, "nombre": "YENIFER AGUDELO", "full": "YENIFER PAOLA AGUDELO MONTOYA", "dia": "2026-03-03"}, {"total_gestiones": 106, "efectivas": 6, "acuerdos": 1, "valor_acuerdos": 0.0, "tasa_contactabilidad": 5.7, "nombre": "YENIFER AGUDELO", "full": "YENIFER PAOLA AGUDELO MONTOYA", "dia": "2026-03-04"}, {"total_gestiones": 93, "efectivas": 11, "acuerdos": 3, "valor_acuerdos": 0.0, "tasa_contactabilidad": 11.8, "nombre": "YENIFER AGUDELO", "full": "YENIFER PAOLA AGUDELO MONTOYA", "dia": "2026-03-05"}, {"total_gestiones": 96, "efectivas": 13, "acuerdos": 0, "valor_acuerdos": 0.0, "tasa_contactabilidad": 13.5, "nombre": "YENIFER AGUDELO", "full": "YENIFER PAOLA AGUDELO MONTOYA", "dia": "2026-03-06"}], "matriz_raw": [{"nombre_usuario_gestion": "ANA MARIA BALZAC SALAZAR", "tipo_contacto": "Llamada Entrante", "total": 2, "efectivas": 0, "tasa": 0.0}, {"nombre_usuario_gestion": "ANA MARIA BALZAC SALAZAR", "tipo_contacto": "Llamada Saliente", "total": 127, "efectivas": 11, "tasa": 8.7}, {"nombre_usuario_gestion": "ANA MARIA BALZAC SALAZAR", "tipo_contacto": "Predictivo", "total": 158, "efectivas": 27, "tasa": 17.1}, {"nombre_usuario_gestion": "ANA MARIA BALZAC SALAZAR", "tipo_contacto": "Whatsapp Entrante", "total": 16, "efectivas": 6, "tasa": 37.5}, {"nombre_usuario_gestion": "ANA MARIA BALZAC SALAZAR", "tipo_contacto": "Whatsapp Movil", "total": 1, "efectivas": 0, "tasa": 0.0}, {"nombre_usuario_gestion": "ANA MARIA BALZAC SALAZAR", "tipo_contacto": "Whatsapp Saliente", "total": 70, "efectivas": 11, "tasa": 15.7}, {"nombre_usuario_gestion": "Biviana Patricia Cano Arredondo", "tipo_contacto": "Llamada Entrante", "total": 5, "efectivas": 3, "tasa": 60.0}, {"nombre_usuario_gestion": "Biviana Patricia Cano Arredondo", "tipo_contacto": "Llamada Saliente", "total": 1575, "efectivas": 161, "tasa": 10.2}, {"nombre_usuario_gestion": "Biviana Patricia Cano Arredondo", "tipo_contacto": "Predictivo", "total": 517, "efectivas": 45, "tasa": 8.7}, {"nombre_usuario_gestion": "Biviana Patricia Cano Arredondo", "tipo_contacto": "Whatsapp Entrante", "total": 38, "efectivas": 16, "tasa": 42.1}, {"nombre_usuario_gestion": "Biviana Patricia Cano Arredondo", "tipo_contacto": "Whatsapp Movil", "total": 1, "efectivas": 1, "tasa": 100.0}, {"nombre_usuario_gestion": "Biviana Patricia Cano Arredondo", "tipo_contacto": "Whatsapp Saliente", "total": 17, "efectivas": 13, "tasa": 76.5}, {"nombre_usuario_gestion": "DAHIANA MARIN SANCHEZ", "tipo_contacto": "Llamada Entrante", "total": 7, "efectivas": 2, "tasa": 28.6}, {"nombre_usuario_gestion": "DAHIANA MARIN SANCHEZ", "tipo_contacto": "Llamada Saliente", "total": 1782, "efectivas": 123, "tasa": 6.9}, {"nombre_usuario_gestion": "DAHIANA MARIN SANCHEZ", "tipo_contacto": "Predictivo", "total": 1966, "efectivas": 403, "tasa": 20.5}, {"nombre_usuario_gestion": "DAHIANA MARIN SANCHEZ", "tipo_contacto": "Whatsapp Entrante", "total": 56, "efectivas": 25, "tasa": 44.6}, {"nombre_usuario_gestion": "DAHIANA MARIN SANCHEZ", "tipo_contacto": "Whatsapp Saliente", "total": 199, "efectivas": 116, "tasa": 58.3}, {"nombre_usuario_gestion": "ESTEFANIA VELEZ FERNANDEZ", "tipo_contacto": "Llamada Entrante", "total": 5, "efectivas": 2, "tasa": 40.0}, {"nombre_usuario_gestion": "ESTEFANIA VELEZ FERNANDEZ", "tipo_contacto": "Llamada Saliente", "total": 2763, "efectivas": 187, "tasa": 6.8}, {"nombre_usuario_gestion": "ESTEFANIA VELEZ FERNANDEZ", "tipo_contacto": "Predictivo", "total": 1655, "efectivas": 261, "tasa": 15.8}, {"nombre_usuario_gestion": "ESTEFANIA VELEZ FERNANDEZ", "tipo_contacto": "Whatsapp Entrante", "total": 58, "efectivas": 33, "tasa": 56.9}, {"nombre_usuario_gestion": "ESTEFANIA VELEZ FERNANDEZ", "tipo_contacto": "Whatsapp Movil", "total": 7, "efectivas": 1, "tasa": 14.3}, {"nombre_usuario_gestion": "ESTEFANIA VELEZ FERNANDEZ", "tipo_contacto": "Whatsapp Saliente", "total": 155, "efectivas": 98, "tasa": 63.2}, {"nombre_usuario_gestion": "JAIME ALEJANDRO MAZO CIRO", "tipo_contacto": "Llamada Entrante", "total": 1, "efectivas": 1, "tasa": 100.0}, {"nombre_usuario_gestion": "JAIME ALEJANDRO MAZO CIRO", "tipo_contacto": "Llamada Saliente", "total": 3464, "efectivas": 240, "tasa": 6.9}, {"nombre_usuario_gestion": "JAIME ALEJANDRO MAZO CIRO", "tipo_contacto": "Predictivo", "total": 662, "efectivas": 181, "tasa": 27.3}, {"nombre_usuario_gestion": "JAIME ALEJANDRO MAZO CIRO", "tipo_contacto": "Web", "total": 1, "efectivas": 0, "tasa": 0.0}, {"nombre_usuario_gestion": "JAIME ALEJANDRO MAZO CIRO", "tipo_contacto": "Whatsapp Entrante", "total": 11, "efectivas": 6, "tasa": 54.5}, {"nombre_usuario_gestion": "JAIME ALEJANDRO MAZO CIRO", "tipo_contacto": "Whatsapp Saliente", "total": 95, "efectivas": 51, "tasa": 53.7}, {"nombre_usuario_gestion": "JULIANA ALVAREZ MESA", "tipo_contacto": "Correo Electronico", "total": 1, "efectivas": 0, "tasa": 0.0}, {"nombre_usuario_gestion": "JULIANA ALVAREZ MESA", "tipo_contacto": "Llamada Entrante", "total": 2, "efectivas": 1, "tasa": 50.0}, {"nombre_usuario_gestion": "JULIANA ALVAREZ MESA", "tipo_contacto": "Llamada Saliente", "total": 613, "efectivas": 41, "tasa": 6.7}, {"nombre_usuario_gestion": "JULIANA ALVAREZ MESA", "tipo_contacto": "Predictivo", "total": 164, "efectivas": 33, "tasa": 20.1}, {"nombre_usuario_gestion": "JULIANA ALVAREZ MESA", "tipo_contacto": "Whatsapp Entrante", "total": 4, "efectivas": 4, "tasa": 100.0}, {"nombre_usuario_gestion": "JULIANA ALVAREZ MESA", "tipo_contacto": "Whatsapp Saliente", "total": 31, "efectivas": 17, "tasa": 54.8}, {"nombre_usuario_gestion": "MARTA CECILIA BALZAC SALAZAR", "tipo_contacto": "Llamada Saliente", "total": 119, "efectivas": 22, "tasa": 18.5}, {"nombre_usuario_gestion": "MARTA CECILIA BALZAC SALAZAR", "tipo_contacto": "Whatsapp Saliente", "total": 8, "efectivas": 1, "tasa": 12.5}, {"nombre_usuario_gestion": "SYLVANA MOLINA BALZAC", "tipo_contacto": "Llamada Entrante", "total": 2, "efectivas": 0, "tasa": 0.0}, {"nombre_usuario_gestion": "SYLVANA MOLINA BALZAC", "tipo_contacto": "Llamada Saliente", "total": 169, "efectivas": 2, "tasa": 1.2}, {"nombre_usuario_gestion": "SYLVANA MOLINA BALZAC", "tipo_contacto": "Predictivo", "total": 299, "efectivas": 23, "tasa": 7.7}, {"nombre_usuario_gestion": "SYLVANA MOLINA BALZAC", "tipo_contacto": "Whatsapp Entrante", "total": 3, "efectivas": 1, "tasa": 33.3}, {"nombre_usuario_gestion": "SYLVANA MOLINA BALZAC", "tipo_contacto": "Whatsapp Movil", "total": 1, "efectivas": 1, "tasa": 100.0}, {"nombre_usuario_gestion": "SYLVANA MOLINA BALZAC", "tipo_contacto": "Whatsapp Saliente", "total": 3, "efectivas": 0, "tasa": 0.0}, {"nombre_usuario_gestion": "Silvia Balzac Salazar", "tipo_contacto": "Correo Electronico", "total": 3, "efectivas": 1, "tasa": 33.3}, {"nombre_usuario_gestion": "Silvia Balzac Salazar", "tipo_contacto": "Llamada Entrante", "total": 5, "efectivas": 1, "tasa": 20.0}, {"nombre_usuario_gestion": "Silvia Balzac Salazar", "tipo_contacto": "Llamada Saliente", "total": 665, "efectivas": 56, "tasa": 8.4}, {"nombre_usuario_gestion": "Silvia Balzac Salazar", "tipo_contacto": "Mensaje de Texto", "total": 2, "efectivas": 0, "tasa": 0.0}, {"nombre_usuario_gestion": "Silvia Balzac Salazar", "tipo_contacto": "Predictivo", "total": 286, "efectivas": 48, "tasa": 16.8}, {"nombre_usuario_gestion": "Silvia Balzac Salazar", "tipo_contacto": "Web", "total": 1, "efectivas": 0, "tasa": 0.0}, {"nombre_usuario_gestion": "Silvia Balzac Salazar", "tipo_contacto": "Whatsapp Entrante", "total": 54, "efectivas": 36, "tasa": 66.7}, {"nombre_usuario_gestion": "Silvia Balzac Salazar", "tipo_contacto": "Whatsapp Movil", "total": 10, "efectivas": 3, "tasa": 30.0}, {"nombre_usuario_gestion": "Silvia Balzac Salazar", "tipo_contacto": "Whatsapp Saliente", "total": 44, "efectivas": 21, "tasa": 47.7}, {"nombre_usuario_gestion": "TATIANA VERGARA MONTOYA", "tipo_contacto": "Llamada Saliente", "total": 1084, "efectivas": 33, "tasa": 3.0}, {"nombre_usuario_gestion": "TATIANA VERGARA MONTOYA", "tipo_contacto": "Predictivo", "total": 119, "efectivas": 20, "tasa": 16.8}, {"nombre_usuario_gestion": "TATIANA VERGARA MONTOYA", "tipo_contacto": "Whatsapp Entrante", "total": 23, "efectivas": 18, "tasa": 78.3}, {"nombre_usuario_gestion": "TATIANA VERGARA MONTOYA", "tipo_contacto": "Whatsapp Saliente", "total": 22, "efectivas": 11, "tasa": 50.0}, {"nombre_usuario_gestion": "YENIFER PAOLA AGUDELO MONTOYA", "tipo_contacto": "Llamada Entrante", "total": 6, "efectivas": 2, "tasa": 33.3}, {"nombre_usuario_gestion": "YENIFER PAOLA AGUDELO MONTOYA", "tipo_contacto": "Llamada Saliente", "total": 924, "efectivas": 62, "tasa": 6.7}, {"nombre_usuario_gestion": "YENIFER PAOLA AGUDELO MONTOYA", "tipo_contacto": "Predictivo", "total": 415, "efectivas": 50, "tasa": 12.0}, {"nombre_usuario_gestion": "YENIFER PAOLA AGUDELO MONTOYA", "tipo_contacto": "Whatsapp Entrante", "total": 1, "efectivas": 1, "tasa": 100.0}, {"nombre_usuario_gestion": "YENIFER PAOLA AGUDELO MONTOYA", "tipo_contacto": "Whatsapp Saliente", "total": 30, "efectivas": 18, "tasa": 60.0}], "resultados": {"Contacto no Exitoso": 16262, "No Hubo Acuerdo": 1853, "Contacto Exitoso": 1038, "Acuerdo Parcial": 544, "Acuerdo con Descuento": 318, "Pago Recordado": 215, "Requerimiento": 111, "Acuerdo de Pago": 81, "Pago Pendiente por Verificar": 65, "Datos Actualizados": 14, "Busqueda Web": 5, "Posible Entrega del Bien": 5, "Soporte de Pago": 3, "Deja de responder": 3, "Correo Enviado": 2, "Busqueda Web No Exitoso": 2, "Mensaje de Cobro": 2, "Posible FS": 2, "Monto Recaudado": 1, "Avaluo Exitoso Pendiente x Aplicar Dacion": 1}, "totales": {"gestiones": 20527, "acuerdos": 399, "efectivas": 2551, "valor": 0.0, "rango_fecha": "2026-02-01 a 2026-04-30", "fecha_actualizacion": "2026-04-24 07:33:35"}};
+
+// Arrays legacy derivados de DATA (sin filtro de tipo)
+const DIARIO = DATA.diario;
+const SEMANAL = DATA.semanal;
+const ASESORES = DATA.asesor;
+const CANALES = DATA.canal;
+const ASESOR_DIA = DATA.asesor_dia.map(r => ({
+  nombre: r.nombre, full: r.full, dia: r.dia,
+  total_gestiones: r.total_gestiones, efectivas: r.efectivas,
+  acuerdos: r.acuerdos, valor_acuerdos: r.valor_acuerdos
+}));
+const MATRIZ_RAW = DATA.matriz_raw;
+
+
+
+// ===================== CHART DEFAULTS =====================
+Chart.defaults.color = '#64748b';
+Chart.defaults.borderColor = '#1e2d45';
+Chart.defaults.font.family = 'DM Mono';
+Chart.defaults.font.size = 11;
+// Desactivar datalabels por defecto — solo las gráficas que lo necesitan lo activan
+if (window.ChartDataLabels) {
+  Chart.register(ChartDataLabels);
+  // Activado globalmente; cada gráfica puede sobreescribirlo si necesita desactivarlo
+  Chart.defaults.plugins.datalabels = {
+    display: true,
+    color: '#cbd5e1',
+    font: { family:'DM Mono', size:9, weight:'bold' },
+    anchor: 'end',
+    align: 'end',
+    formatter: (v) => {
+      if (v === 0 || v === null || v === undefined) return '';
+      if (typeof v === 'number' && Math.abs(v) >= 1000) return v.toLocaleString();
+      if (typeof v === 'number') return v.toString();
+      return v;
+    }
+  };
+}
+
+const PALETTE = ['#2563eb','#10b981','#ea580c','#f59e0b','#8b5cf6','#06b6d4','#ec4899','#84cc16','#f43f5e','#14b8a6','#a78bfa'];
+const PALETTE_GLOW = PALETTE.map(c => c + '33');
+
+function cfg(type, labels, datasets, opts={}) {
+  const isDoughnut = type === 'pie' || type === 'doughnut';
+  const isLine = type === 'line';
+  return { type, data:{labels, datasets}, options:{
+    responsive:true, maintainAspectRatio:true,
+    plugins:{
+      legend:{ labels:{color:'#94a3b8',font:{size:10,family:'DM Mono'}} },
+      datalabels: isLine ? { display: false } : (isDoughnut ? {
+        display: (ctx) => ctx.dataset.data[ctx.dataIndex] >= 200,
+        color: '#fff',
+        font: { family:'DM Mono', size:10, weight:'bold' },
+        formatter: (v) => v > 0 ? v.toLocaleString() : '',
+        anchor: 'center', align: 'center'
+      } : {
+        display: true,
+        anchor: (opts.indexAxis === 'y' ? 'end' : 'end'),
+        align:  (opts.indexAxis === 'y' ? 'end' : 'top'),
+        color: '#cbd5e1',
+        font: { family:'DM Mono', size:9, weight:'bold' },
+        formatter: (v) => {
+          if (v === 0 || v === null || v === undefined) return '';
+          if (typeof v === 'number' && v >= 1000) return v.toLocaleString();
+          return v;
+        }
+      })
+    },
+    scales: !isDoughnut ? {
+      x:{ grid:{color:'#1e2d45'}, ticks:{color:'#475569'} },
+      y:{ grid:{color:'#1e2d45'}, ticks:{color:'#475569'} }
+    } : undefined,
+    ...opts
+  }};
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// HELPERS
+// ═══════════════════════════════════════════════════════════════════
+function fmtMoney(valorPesos) {
+  // Devuelve texto formateado en millones con 1 decimal (ej. "59.4M")
+  if (!valorPesos || valorPesos === 0) return '0M';
+  return (valorPesos / 1e6).toFixed(1) + 'M';
+}
+function toMillones(valorPesos) {
+  return Math.round((valorPesos / 1e6) * 10) / 10;  // 1 decimal
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// MENSUAL
+// ═══════════════════════════════════════════════════════════════════
+function renderMensual() {
+  const m = DATA.mensual;
+  const labels = ['Febrero','Marzo','Abril'];
+
+  // Actualizar KPIs
+  const totalGest = m.gestiones.reduce((a,b)=>a+b,0);
+  const totalEfect = Math.round(m.gestiones.reduce((a,b,i)=> a+b*m.contactabilidad[i]/100, 0));
+  const pctEfect = totalGest > 0 ? (totalEfect/totalGest*100).toFixed(1) : 0;
+  const totalAcuerdos = m.acuerdos.reduce((a,b)=>a+b,0);
+  const totalValor = m.valor.reduce((a,b)=>a+b,0);
+
+  const kpiHTML = `
+    <div class="kpi" style="--accent-color:#2563eb">
+      <div class="kpi-label">GESTIONES TOTALES</div>
+      <div class="kpi-value" style="color:#60a5fa">${totalGest.toLocaleString()}</div>
+      <div class="kpi-sub">Feb: ${m.gestiones[0].toLocaleString()} · Mar: ${m.gestiones[1].toLocaleString()} · Abr: ${m.gestiones[2].toLocaleString()}</div>
+    </div>
+    <div class="kpi" style="--accent-color:#10b981">
+      <div class="kpi-label">CONTACTABILIDAD GLOBAL</div>
+      <div class="kpi-value" style="color:#34d399">${pctEfect}%</div>
+      <div class="kpi-sub">${totalEfect.toLocaleString()} contactos logrados</div>
+    </div>
+    <div class="kpi" style="--accent-color:#ea580c">
+      <div class="kpi-label">ACUERDOS</div>
+      <div class="kpi-value" style="color:#fb923c">${totalAcuerdos}</div>
+      <div class="kpi-sub">Feb: ${m.acuerdos[0]} · Mar: ${m.acuerdos[1]} · Abr: ${m.acuerdos[2]}</div>
+    </div>
+    <div class="kpi" style="--accent-color:#f59e0b">
+      <div class="kpi-label">TASA DE CIERRE</div>
+      <div class="kpi-value" style="color:#fbbf24">${totalGest > 0 ? (totalAcuerdos/totalGest*100).toFixed(2) : 0}%</div>
+      <div class="kpi-sub">Acuerdos / Gestiones totales</div>
+    </div>
+  `;
+  document.getElementById('kpi-mensual').innerHTML = kpiHTML;
+
+  new Chart('c-gestiones-mes', cfg('bar', labels, [{
+    label:'Gestiones', data: m.gestiones,
+    backgroundColor:['#1d4ed866','#2563eb99','#3b82f6bb'],
+    borderColor:['#2563eb','#2563eb','#2563eb'], borderWidth:2, borderRadius:6
+  }]));
+
+  new Chart('c-efect-mes', cfg('bar', labels, [
+    { label:'Contactabilidad %', data:m.contactabilidad, backgroundColor:'#10b98166', borderColor:'#10b981', borderWidth:2, borderRadius:6, yAxisID:'y' },
+    { label:'Acuerdos', data:m.acuerdos, backgroundColor:'#ea580c66', borderColor:'#ea580c', borderWidth:2, borderRadius:6, yAxisID:'y1' }
+  ], { scales:{ y:{position:'left',grid:{color:'#1e2d45'},ticks:{color:'#475569',callback:v=>v+'%'}}, y1:{position:'right',grid:{drawOnChartArea:false},ticks:{color:'#475569'}} } }));
+
+  const tasaCierreMes = [0,1,2].map(i => m.gestiones[i] > 0 ? Math.round(m.acuerdos[i]/m.gestiones[i]*10000)/100 : 0);
+  new Chart('c-valor-mes', cfg('bar', labels, [{
+    label:'Tasa cierre %', data:tasaCierreMes,
+    backgroundColor:['#f59e0b44','#f59e0b88','#f59e0bcc'],
+    borderColor:['#f59e0b','#f59e0b','#f59e0b'], borderWidth:2, borderRadius:6
+  }], { scales:{ x:{grid:{color:'#1e2d45'},ticks:{color:'#475569'}}, y:{grid:{color:'#1e2d45'},ticks:{color:'#475569',callback:v=>v+'%'}} } }));
+
+  // Donut dinámico desde DATA.resultados
+  const resultadosOrden = ['Contacto no Exitoso','No Hubo Acuerdo','Contacto Exitoso','Acuerdo Parcial','Acuerdo con Descuento','Pago Recordado','Acuerdo de Pago'];
+  const resultadosLabels = [], resultadosData = [];
+  resultadosOrden.forEach(k => {
+    if (DATA.resultados[k] !== undefined) {
+      resultadosLabels.push(k.replace('Acuerdo con Descuento', 'Acuerdo c/Descuento'));
+      resultadosData.push(DATA.resultados[k]);
+    }
+  });
+  // Agrupar los que no están en el orden
+  let otros = 0;
+  Object.entries(DATA.resultados).forEach(([k, v]) => {
+    if (!resultadosOrden.includes(k)) otros += v;
+  });
+  if (otros > 0) { resultadosLabels.push('Otros'); resultadosData.push(otros); }
+
+  new Chart('c-resultados', { type:'doughnut', data:{
+    labels: resultadosLabels,
+    datasets:[{ data: resultadosData, backgroundColor:['#1e3a5f','#374151','#2563eb','#10b981','#34d399','#f59e0b','#ea580c','#6b7280'].slice(0, resultadosLabels.length), borderWidth:0 }]
+  }, options:{ responsive:true, maintainAspectRatio:true, plugins:{
+    legend:{ position:'right', labels:{color:'#94a3b8',font:{size:9},boxWidth:12} },
+    datalabels: {
+      display: (ctx) => {
+        const meta = ctx.chart.getDatasetMeta(0);
+        let totalVisible = 0;
+        ctx.dataset.data.forEach((v, i) => { if (!meta.data[i].hidden) totalVisible += v; });
+        const value = ctx.dataset.data[ctx.dataIndex];
+        return totalVisible > 0 && (value / totalVisible) >= 0.03;
+      },
+      color: '#fff', font:{family:'DM Mono',size:10,weight:'bold'},
+      formatter: (v) => v.toLocaleString(), anchor:'center', align:'center'
+    }
+  } } });
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// DIARIO
+// ═══════════════════════════════════════════════════════════════════
+let diarioCharts = [];
+let currentMesDiario = 4;
+
+function filterDiario(mes) {
+  currentMesDiario = mes;
+  document.querySelectorAll('#panel-diario .filter-btn').forEach(b => b.classList.remove('active'));
+  if (event && event.target) event.target.classList.add('active');
+  renderDiario();
+}
+
+function renderDiario() {
+  const data = currentMesDiario === 0 ? DIARIO : DIARIO.filter(d => parseInt(d.dia.split('-')[1]) === currentMesDiario);
+  diarioCharts.forEach(c => c.destroy());
+  diarioCharts = [];
+
+  const labels = data.map(d => d.dia.slice(5));
+  const total = data.map(d => d.total_gestiones);
+  const contact = data.map(d => d.tasa_contactabilidad);
+  const acuerdos = data.map(d => d.acuerdos);
+
+  diarioCharts.push(new Chart('c-diario-gestiones', cfg('line', labels, [{
+    label:'Gestiones', data:total, borderColor:'#2563eb', backgroundColor:'#2563eb22',
+    fill:true, tension:.35, pointRadius:3, pointBackgroundColor:'#2563eb'
+  }])));
+  diarioCharts.push(new Chart('c-diario-efect', cfg('line', labels, [{
+    label:'Contactabilidad %', data:contact, borderColor:'#10b981', backgroundColor:'#10b98122',
+    fill:true, tension:.35, pointRadius:3, pointBackgroundColor:'#10b981'
+  }], { scales:{ x:{grid:{color:'#1e2d45'},ticks:{color:'#475569'}}, y:{grid:{color:'#1e2d45'},ticks:{color:'#475569',callback:v=>v+'%'}} } })));
+  diarioCharts.push(new Chart('c-diario-acuerdos', cfg('bar', labels, [{
+    label:'Acuerdos', data:acuerdos, backgroundColor:'#ea580c99', borderColor:'#ea580c',
+    borderWidth:1, borderRadius:4
+  }])));
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// SEMANAL — con labels "Sem N · DD-DD Mes"
+// ═══════════════════════════════════════════════════════════════════
+let semCharts = [];
+let currentMesSem = 4;
+
+function filterSemanal(mes) {
+  currentMesSem = mes;
+  document.querySelectorAll('#panel-semanal .filter-btn').forEach(b => b.classList.remove('active'));
+  if (event && event.target) event.target.classList.add('active');
+  renderSemanal();
+}
+
+function renderSemanal() {
+  const data = currentMesSem === 0 ? SEMANAL : SEMANAL.filter(d => d.mes === currentMesSem);
+  semCharts.forEach(c => c.destroy());
+  semCharts = [];
+
+  const labels = data.map(d => d.label);  // usa el label precomputado "Sem N · DD-DD Mes"
+  const total = data.map(d => d.total_gestiones);
+  const contact = data.map(d => d.tasa_contactabilidad);
+  const acuerdos = data.map(d => d.acuerdos);
+  const valor = data.map(d => toMillones(d.valor_acuerdos));
+
+  const kpiEl = document.getElementById('kpi-semanal');
+  if(data.length > 0) {
+    const best = data.reduce((a,b) => b.tasa_contactabilidad > a.tasa_contactabilidad ? b : a);
+    const bestVol = data.reduce((a,b) => b.total_gestiones > a.total_gestiones ? b : a);
+    kpiEl.innerHTML = `
+      <div class="kpi" style="--accent-color:#2563eb"><div class="kpi-label">SEMANAS ANALIZADAS</div><div class="kpi-value" style="color:#60a5fa">${data.length}</div></div>
+      <div class="kpi" style="--accent-color:#10b981"><div class="kpi-label">MEJOR CONTACTABILIDAD</div><div class="kpi-value" style="color:#34d399">${best.tasa_contactabilidad}%</div><div class="kpi-sub">${best.label}</div></div>
+      <div class="kpi" style="--accent-color:#ea580c"><div class="kpi-label">MAYOR VOLUMEN</div><div class="kpi-value" style="color:#fb923c">${bestVol.total_gestiones.toLocaleString()}</div><div class="kpi-sub">${bestVol.label}</div></div>
+      <div class="kpi" style="--accent-color:#f59e0b"><div class="kpi-label">TOTAL ACUERDOS</div><div class="kpi-value" style="color:#fbbf24">${data.reduce((a,b)=>a+b.acuerdos,0)}</div></div>
+    `;
+  }
+
+  semCharts.push(new Chart('c-sem-gestiones', cfg('bar', labels, [{
+    label:'Gestiones', data:total, backgroundColor:'#2563eb88', borderColor:'#2563eb', borderWidth:2, borderRadius:5
+  }])));
+  semCharts.push(new Chart('c-sem-efect', cfg('line', labels, [{
+    label:'Contactabilidad %', data:contact, borderColor:'#10b981', backgroundColor:'#10b98122',
+    fill:true, tension:.3, pointRadius:5, pointBackgroundColor:'#10b981'
+  }], { scales:{ x:{grid:{color:'#1e2d45'},ticks:{color:'#475569'}}, y:{grid:{color:'#1e2d45'},ticks:{color:'#475569',callback:v=>v+'%'}} } })));
+  semCharts.push(new Chart('c-sem-acuerdos', cfg('bar', labels, [{
+    label:'Acuerdos', data:acuerdos, backgroundColor:'#ea580c88', borderColor:'#ea580c', borderWidth:2, borderRadius:5
+  }])));
+  const tasaCierreSem = data.map(d => d.total_gestiones>0 ? Math.round(d.acuerdos/d.total_gestiones*10000)/100 : 0);
+  semCharts.push(new Chart('c-sem-valor', cfg('bar', labels, [{
+    label:'Tasa cierre %', data:tasaCierreSem, backgroundColor:'#f59e0b88', borderColor:'#f59e0b', borderWidth:2, borderRadius:5
+  }], { scales:{ x:{grid:{color:'#1e2d45'},ticks:{color:'#475569'}}, y:{grid:{color:'#1e2d45'},ticks:{color:'#475569',callback:v=>v+'%'}} } })));
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// ASESORES — ranking + tabla + panel alertas
+// ═══════════════════════════════════════════════════════════════════
+function renderAsesores() {
+  const asSort = [...ASESORES].sort((a,b) => b.tasa_contactabilidad - a.tasa_contactabilidad);
+
+  new Chart('c-ases-efect', cfg('bar', asSort.map(a=>a.nombre), [{
+    label:'Contactabilidad %', data:asSort.map(a=>a.tasa_contactabilidad),
+    backgroundColor: asSort.map(a => a.tasa_contactabilidad >= 15 ? '#10b98199' : a.tasa_contactabilidad >= 10 ? '#f59e0b99' : '#ef444499'),
+    borderColor: asSort.map(a => a.tasa_contactabilidad >= 15 ? '#10b981' : a.tasa_contactabilidad >= 10 ? '#f59e0b' : '#ef4444'),
+    borderWidth:2, borderRadius:5
+  }], { indexAxis:'y', scales:{ x:{grid:{color:'#1e2d45'},ticks:{color:'#475569',callback:v=>v+'%'}}, y:{grid:{color:'#1e2d45'},ticks:{color:'#94a3b8'}} } }));
+
+  const asVol = [...ASESORES].sort((a,b) => b.total_gestiones - a.total_gestiones);
+  new Chart('c-ases-vol', cfg('bar', asVol.map(a=>a.nombre), [{
+    label:'Gestiones', data:asVol.map(a=>a.total_gestiones),
+    backgroundColor:PALETTE.map(c=>c+'99'), borderColor:PALETTE, borderWidth:2, borderRadius:5
+  }], { indexAxis:'y', scales:{ x:{grid:{color:'#1e2d45'},ticks:{color:'#475569'}}, y:{grid:{color:'#1e2d45'},ticks:{color:'#94a3b8'}} } }));
+
+  const asCierre = [...ASESORES].sort((a,b) => (b.acuerdos/b.total_gestiones) - (a.acuerdos/a.total_gestiones));
+  new Chart('c-ases-valor', cfg('bar', asCierre.map(a=>a.nombre), [{
+    label:'Tasa cierre %', data:asCierre.map(a=>a.total_gestiones>0 ? Math.round(a.acuerdos/a.total_gestiones*10000)/100 : 0),
+    backgroundColor:'#f59e0b66', borderColor:'#f59e0b', borderWidth:2, borderRadius:5
+  }], { indexAxis:'y', scales:{ x:{grid:{color:'#1e2d45'},ticks:{color:'#475569',callback:v=>v+'%'}}, y:{grid:{color:'#1e2d45'},ticks:{color:'#94a3b8'}} } }));
+
+  const asAc = [...ASESORES].sort((a,b) => b.acuerdos - a.acuerdos);
+  new Chart('c-ases-acuerdos', cfg('bar', asAc.map(a=>a.nombre), [{
+    label:'Acuerdos', data:asAc.map(a=>a.acuerdos),
+    backgroundColor:'#8b5cf666', borderColor:'#8b5cf6', borderWidth:2, borderRadius:5
+  }], { indexAxis:'y', scales:{ x:{grid:{color:'#1e2d45'},ticks:{color:'#475569'}}, y:{grid:{color:'#1e2d45'},ticks:{color:'#94a3b8'}} } }));
+
+  // Tabla semáforo
+  const tbody = document.getElementById('tabla-asesores');
+  const asAll = [...ASESORES].sort((a,b) => b.tasa_contactabilidad - a.tasa_contactabilidad);
+  
+  tbody.innerHTML = '';
+  asAll.forEach((a,i) => {
+    const color = a.tasa_contactabilidad >= 15 ? '#10b981' : a.tasa_contactabilidad >= 10 ? '#f59e0b' : '#ef4444';
+    const tasa = a.total_gestiones > 0 ? a.acuerdos/a.total_gestiones*100 : 0;
+    const maxTasa = Math.max(...asAll.map(x => x.total_gestiones>0 ? x.acuerdos/x.total_gestiones*100 : 0), 1);
+    const pct = Math.round(tasa/maxTasa * 100);
+    tbody.innerHTML += `<tr>
+      <td class="rank-num">${String(i+1).padStart(2,'0')}</td>
+      <td><span class="semaforo" style="background:${color}"></span>${a.nombre}</td>
+      <td>${a.total_gestiones.toLocaleString()}</td>
+      <td>${a.efectivas.toLocaleString()}</td>
+      <td style="color:${color};font-weight:700">${a.tasa_contactabilidad}%</td>
+      <td>${a.acuerdos}</td>
+      <td>${(a.acuerdos/a.total_gestiones*100).toFixed(2)}% <span class="bar-mini" style="width:${pct}px"></span></td>
+      <td style="color:${color};font-size:0.72rem;font-family:'DM Mono'">${a.tasa_contactabilidad>=15?'▲ ALTO':a.tasa_contactabilidad>=10?'◆ MEDIO':'▼ BAJO'}</td>
+    </tr>`;
+  });
+
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// CANALES
+// ═══════════════════════════════════════════════════════════════════
+function renderCanales() {
+  const cSort = [...CANALES].sort((a,b) => b.tasa_contactabilidad - a.tasa_contactabilidad);
+
+  new Chart('c-canal-efect', cfg('bar', cSort.map(c=>c.canal), [{
+    label:'Contactabilidad %', data:cSort.map(c=>c.tasa_contactabilidad),
+    backgroundColor: cSort.map((c,i) => (i<2 ? '#10b981' : i<4 ? '#f59e0b' : '#2563eb')+'99'),
+    borderColor: cSort.map((c,i) => i<2 ? '#10b981' : i<4 ? '#f59e0b' : '#2563eb'),
+    borderWidth:2, borderRadius:5
+  }], { indexAxis:'y', scales:{ x:{grid:{color:'#1e2d45'},ticks:{color:'#475569',callback:v=>v+'%'}}, y:{grid:{color:'#1e2d45'},ticks:{color:'#94a3b8'}} } }));
+
+  new Chart('c-canal-vol', cfg('bar', CANALES.map(c=>c.canal), [{
+    label:'Gestiones', data:CANALES.map(c=>c.total_gestiones),
+    backgroundColor:PALETTE.map(c=>c+'88'), borderColor:PALETTE, borderWidth:2, borderRadius:5
+  }], { indexAxis:'y', scales:{ x:{grid:{color:'#1e2d45'},ticks:{color:'#475569'}}, y:{grid:{color:'#1e2d45'},ticks:{color:'#94a3b8'}} } }));
+
+  const cCierre = [...CANALES].sort((a,b) => (b.acuerdos/b.total_gestiones) - (a.acuerdos/a.total_gestiones));
+  new Chart('c-canal-valor', cfg('bar', cCierre.map(c=>c.canal), [{
+    label:'Tasa cierre %', data:cCierre.map(c=>c.total_gestiones>0 ? Math.round(c.acuerdos/c.total_gestiones*10000)/100 : 0),
+    backgroundColor:'#f59e0b66', borderColor:'#f59e0b', borderWidth:2, borderRadius:5
+  }], { indexAxis:'y', scales:{ x:{grid:{color:'#1e2d45'},ticks:{color:'#475569',callback:v=>v+'%'}}, y:{grid:{color:'#1e2d45'},ticks:{color:'#94a3b8'}} } }));
+
+  const cAc = [...CANALES].sort((a,b) => b.acuerdos - a.acuerdos);
+  new Chart('c-canal-acuerdos', cfg('bar', cAc.map(c=>c.canal), [{
+    label:'Acuerdos', data:cAc.map(c=>c.acuerdos),
+    backgroundColor:'#8b5cf666', borderColor:'#8b5cf6', borderWidth:2, borderRadius:5
+  }], { indexAxis:'y', scales:{ x:{grid:{color:'#1e2d45'},ticks:{color:'#475569'}}, y:{grid:{color:'#1e2d45'},ticks:{color:'#94a3b8'}} } }));
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// MATRIZ (no depende del tipo de cierre — contactabilidad por canal/asesor)
+// ═══════════════════════════════════════════════════════════════════
+const CANALES_MATRIX = ['Llamada Saliente','Predictivo','Whatsapp Saliente','Whatsapp Entrante'];
+const ASESORES_NAMES_SHORT = {
+  'ANA MARIA BALZAC SALAZAR':'ANA MARIA',
+  'Biviana Patricia Cano Arredondo':'BIVIANA',
+  'DAHIANA MARIN SANCHEZ':'DAHIANA',
+  'ESTEFANIA VELEZ FERNANDEZ':'ESTEFANIA',
+  'JAIME ALEJANDRO MAZO CIRO':'JAIME',
+  'JULIANA ALVAREZ MESA':'JULIANA',
+  'MARTA CECILIA BALZAC SALAZAR':'MARTA',
+  'SYLVANA MOLINA BALZAC':'SYLVANA',
+  'Silvia Balzac Salazar':'SILVIA',
+  'TATIANA VERGARA MONTOYA':'TATIANA',
+  'YENIFER PAOLA AGUDELO MONTOYA':'YENIFER'
+};
+const lookup = {};
+MATRIZ_RAW.forEach(r => { lookup[r.nombre_usuario_gestion + '||' + r.tipo_contacto] = r; });
+
+function heatClass(v) {
+  if(v === null) return 'heat-0';
+  if(v < 5) return 'heat-1';
+  if(v < 15) return 'heat-2';
+  if(v < 25) return 'heat-3';
+  if(v < 40) return 'heat-4';
+  return 'heat-5';
+}
+
+function renderMatriz() {
+  const matTable = document.getElementById('tabla-matriz');
+  let header = '<thead><tr><th style="text-align:left">ASESOR</th>';
+  CANALES_MATRIX.forEach(c => header += `<th>${c.replace('Whatsapp','WA').replace(' ','<br>')}</th>`);
+  header += '</tr></thead><tbody>';
+  let body = '';
+  Object.entries(ASESORES_NAMES_SHORT).forEach(([full, short]) => {
+    body += `<tr><td class="asesor-cell">${short}</td>`;
+    CANALES_MATRIX.forEach(canal => {
+      const r = lookup[full + '||' + canal];
+      if(r) body += `<td class="${heatClass(r.tasa)}" title="${r.total} gestiones">${r.tasa}%<br><small style="opacity:.6;font-size:.65rem">(${r.total})</small></td>`;
+      else body += `<td class="heat-0">—</td>`;
+    });
+    body += '</tr>';
+  });
+  matTable.innerHTML = header + body + '</tbody>';
+
+  const asesoresShort = Object.values(ASESORES_NAMES_SHORT);
+  const matDatasets = CANALES_MATRIX.map((canal, ci) => ({
+    label: canal.replace('Whatsapp','WA'),
+    data: Object.entries(ASESORES_NAMES_SHORT).map(([full]) => {
+      const r = lookup[full + '||' + canal];
+      return r ? r.tasa : 0;
+    }),
+    backgroundColor: PALETTE[ci]+'99',
+    borderColor: PALETTE[ci],
+    borderWidth:1, borderRadius:3
+  }));
+
+  new Chart('c-matriz-bar', cfg('bar', asesoresShort, matDatasets, {
+    scales:{
+      x:{grid:{color:'#1e2d45'},ticks:{color:'#94a3b8',font:{size:9}}},
+      y:{grid:{color:'#1e2d45'},ticks:{color:'#475569',callback:v=>v+'%'}}
+    },
+    plugins: { datalabels: { display: false } }
+  }));
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// ASESOR DÍA A DÍA
+// ═══════════════════════════════════════════════════════════════════
+let adCharts = [];
+const nombres = ["ANA MARIA BALZAC","BIVIANA CANO","DAHIANA MARIN","ESTEFANIA VELEZ","JAIME MAZO","JULIANA ALVAREZ","MARTA BALZAC","SILVIA BALZAC","SYLVANA MOLINA","TATIANA VERGARA","YENIFER AGUDELO"];
+
+// Poblar selector una sola vez
+(function poblarSelector(){
+  const selAsesor = document.getElementById('sel-asesor');
+  if (selAsesor && selAsesor.options.length <= 1) {
+    nombres.forEach(n => { const o = document.createElement('option'); o.value=n; o.textContent=n; selAsesor.appendChild(o); });
+  }
+})();
+
+function quickDate(type) {
+  document.querySelectorAll('#panel-asesores .filter-btn').forEach(b => b.classList.remove('active'));
+  if (event && event.target) event.target.classList.add('active');
+  const from = document.getElementById('date-from');
+  const to = document.getElementById('date-to');
+  if(type==='today') { from.value='2026-04-22'; to.value='2026-04-22'; }
+  else if(type==='mes4') { from.value='2026-04-01'; to.value='2026-04-21'; }
+  else if(type==='mes3') { from.value='2026-03-01'; to.value='2026-03-31'; }
+  else { from.value='2026-02-09'; to.value='2026-04-21'; }
+  renderAsesorDia();
+}
+
+function renderAsesorDia() {
+  const sel  = document.getElementById('sel-asesor').value;
+  const from = document.getElementById('date-from').value;
+  const to   = document.getElementById('date-to').value;
+
+  const data = ASESOR_DIA.filter(d => d.dia >= from && d.dia <= to);
+
+  adCharts.forEach(c => c.destroy());
+  adCharts = [];
+
+  const dataKpi = sel === 'TODOS' ? data : data.filter(d => d.nombre === sel);
+  const totG = dataKpi.reduce((a,b)=>a+b.total_gestiones,0);
+  const totA = dataKpi.reduce((a,b)=>a+b.acuerdos,0);
+  const totV = dataKpi.reduce((a,b)=>a+b.valor_acuerdos,0);
+  const totE = dataKpi.reduce((a,b)=>a+b.efectivas,0);
+  const tefect = totG > 0 ? (totE/totG*100).toFixed(1) : 0;
+  const diasUnicos = [...new Set(dataKpi.map(d=>d.dia))].length;
+  document.getElementById('kpi-asesor-dia').innerHTML = `
+    <div class="kpi" style="--accent-color:#2563eb"><div class="kpi-label">GESTIONES PERÍODO</div><div class="kpi-value" style="color:#60a5fa">${totG.toLocaleString()}</div><div class="kpi-sub">${diasUnicos} días</div></div>
+    <div class="kpi" style="--accent-color:#10b981"><div class="kpi-label">CONTACTABILIDAD</div><div class="kpi-value" style="color:#34d399">${tefect}%</div><div class="kpi-sub">${totE.toLocaleString()} contactos logrados</div></div>
+    <div class="kpi" style="--accent-color:#ea580c"><div class="kpi-label">ACUERDOS</div><div class="kpi-value" style="color:#fb923c">${totA}</div><div class="kpi-sub">en el período</div></div>
+    <div class="kpi" style="--accent-color:#f59e0b"><div class="kpi-label">TASA DE CIERRE</div><div class="kpi-value" style="color:#fbbf24">${totG > 0 ? (totA/totG*100).toFixed(2) : 0}%</div><div class="kpi-sub">Acuerdos / Gestiones</div></div>
+  `;
+
+  if (sel === 'TODOS') {
+    document.querySelector('#c-ad-gestiones').closest('.card').querySelector('.card-title').innerHTML = '<span>📞</span>GESTIONES POR ASESOR — ACUMULADO';
+    document.querySelector('#c-ad-acuerdos').closest('.card').querySelector('.card-title').innerHTML = '<span>🤝</span>ACUERDOS POR ASESOR — ACUMULADO';
+    document.querySelector('#c-ad-valor').closest('.card').querySelector('.card-title').innerHTML   = '<span>💰</span>TASA DE CIERRE POR ASESOR (%)';
+
+    const acum = {};
+    nombres.forEach(n => { acum[n] = { gestiones:0, acuerdos:0, valor:0 }; });
+    data.forEach(d => {
+      if (acum[d.nombre]) {
+        acum[d.nombre].gestiones += d.total_gestiones;
+        acum[d.nombre].acuerdos  += d.acuerdos;
+        acum[d.nombre].valor     += d.valor_acuerdos;
+      }
+    });
+
+    const labels = [...nombres].sort((a,b) => acum[b].gestiones - acum[a].gestiones);
+    const gestionesArr = labels.map(n => acum[n].gestiones);
+    const acuerdosArr  = labels.map(n => acum[n].acuerdos);
+    const valorArr     = labels.map(n => {
+      const acumN = acum[n];
+      return acumN.gestiones > 0 ? Math.round(acumN.acuerdos/acumN.gestiones*10000)/100 : 0;
+    });
+
+    function barH(canvasId, values, color, unitLabel, isMoney) {
+      const canvas = document.getElementById(canvasId);
+      canvas.parentElement.style.height = '420px';
+      canvas.style.maxHeight = '420px';
+      return new Chart(canvasId, {
+        type: 'bar',
+        data: { labels, datasets: [{ label: unitLabel, data: values, backgroundColor: color, borderColor: color, borderWidth: 0, borderRadius: 4 }] },
+        options: {
+          indexAxis: 'y', responsive: true, maintainAspectRatio: false,
+          layout: { padding: { right: 60 } },
+          plugins: {
+            legend: { display: false },
+            tooltip: { callbacks: { title: (items) => items[0].label, label: (item) => `${unitLabel}: ${isMoney === 'pct' ? item.parsed.x + '%' : (isMoney === true ? '$'+item.parsed.x+'M' : item.parsed.x.toLocaleString())}` } },
+            datalabels: {
+              display: true, anchor: 'end', align: 'end',
+              color: '#cbd5e1', font: { family:'DM Mono', size:10, weight:'bold' },
+              formatter: (v) => {
+                if (v === 0) return '';
+                if (isMoney === 'pct') return v + '%';
+                if (isMoney === true) return '$' + v + 'M';
+                return v.toLocaleString();
+              }
+            }
+          },
+          scales: {
+            x: { grid:{color:'#1e2d45'}, ticks:{color:'#475569', callback:v=>isMoney==='pct'?v+'%':v.toLocaleString()}, beginAtZero:true },
+            y: { grid:{color:'#1e2d45'}, ticks:{color:'#94a3b8', font:{size:11}, autoSkip: false } }
+          }
+        }
+      });
+    }
+
+    adCharts.push(barH('c-ad-gestiones', gestionesArr, '#2563eb', 'Gestiones', false));
+    adCharts.push(barH('c-ad-acuerdos',  acuerdosArr,  '#ea580c', 'Acuerdos', false));
+    adCharts.push(barH('c-ad-valor',     valorArr,     '#f59e0b', 'Tasa cierre', 'pct'));
+
+  } else {
+    const dataAsesor = data.filter(d => d.nombre === sel);
+    const porDia = {};
+    dataAsesor.forEach(d => {
+      if (!porDia[d.dia]) porDia[d.dia] = { gestiones:0, acuerdos:0, valor:0 };
+      porDia[d.dia].gestiones += d.total_gestiones;
+      porDia[d.dia].acuerdos  += d.acuerdos;
+      porDia[d.dia].valor     += d.valor_acuerdos;
+    });
+    const dias   = Object.keys(porDia).sort();
+    const labels = dias.map(d => d.slice(5));
+
+    document.querySelector('#c-ad-gestiones').closest('.card').querySelector('.card-title').innerHTML = `<span>📞</span>GESTIONES DÍA A DÍA — ${sel}`;
+    document.querySelector('#c-ad-acuerdos').closest('.card').querySelector('.card-title').innerHTML = `<span>🤝</span>ACUERDOS DÍA A DÍA — ${sel}`;
+    document.querySelector('#c-ad-valor').closest('.card').querySelector('.card-title').innerHTML   = `<span>💰</span>TASA DE CIERRE DÍA (%) — ${sel}`;
+
+    function barV(canvasId, values, color, unitLabel, isMoney) {
+      const canvas = document.getElementById(canvasId);
+      canvas.parentElement.style.height = '';
+      canvas.style.maxHeight = '';
+      return new Chart(canvasId, {
+        type: 'bar',
+        data: { labels, datasets: [{ label: unitLabel, data: values, backgroundColor: color, borderColor: color, borderWidth: 0, borderRadius: 4 }] },
+        options: {
+          responsive: true, maintainAspectRatio: true,
+          plugins: {
+            legend:{display:false},
+            datalabels: {
+              display: true, anchor:'end', align:'top',
+              color:'#cbd5e1', font:{family:'DM Mono',size:9,weight:'bold'},
+              formatter: (v) => {
+                if (v === 0) return '';
+                if (isMoney === 'pct') return v + '%';
+                if (isMoney === true) return '$' + v + 'M';
+                return v.toLocaleString();
+              }
+            }
+          },
+          scales: {
+            x: { grid:{color:'#1e2d45'}, ticks:{color:'#475569',maxRotation:45,font:{size:9}} },
+            y: { grid:{color:'#1e2d45'}, ticks:{color:'#475569'} }
+          }
+        }
+      });
+    }
+
+    adCharts.push(barV('c-ad-gestiones', dias.map(d=>porDia[d].gestiones), '#2563eb', 'Gestiones', false));
+    adCharts.push(barV('c-ad-acuerdos',  dias.map(d=>porDia[d].acuerdos),  '#ea580c', 'Acuerdos', false));
+    adCharts.push(barV('c-ad-valor',     dias.map(d => porDia[d].gestiones > 0 ? Math.round(porDia[d].acuerdos/porDia[d].gestiones*10000)/100 : 0), '#f59e0b', 'Tasa cierre', 'pct'));
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// INICIALIZACIÓN — render inicial con tipo = 'parcial'
+// ═══════════════════════════════════════════════════════════════════
+renderMensual();
+renderDiario();
+renderSemanal();
+renderAsesores();
+renderCanales();
+renderMatriz();
+renderAsesorDia();
+
+
+
+// ===================== TAB NAVIGATION =====================
+function showPanel(id) {
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('panel-'+id).classList.add('active');
+  event.target.classList.add('active');
+}
+</script>
+</body>
+</html>
