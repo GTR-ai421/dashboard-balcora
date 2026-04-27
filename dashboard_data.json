@@ -1,19 +1,19 @@
 {
   "mensual": {
     "gestiones": [
-      1738,
+      1739,
       7848,
-      6012
+      6551
     ],
     "contactabilidad": [
       11.8,
       13.1,
-      13.1
+      12.8
     ],
     "acuerdos": [
       26,
       148,
-      97
+      98
     ],
     "valor": [
       0.0,
@@ -68,11 +68,11 @@
       "dia": "2026-02-13"
     },
     {
-      "total_gestiones": 65,
+      "total_gestiones": 66,
       "efectivas": 11,
       "acuerdos": 0,
       "valor_acuerdos": 0.0,
-      "tasa_contactabilidad": 16.9,
+      "tasa_contactabilidad": 16.7,
       "dia": "2026-02-14"
     },
     {
@@ -514,11 +514,19 @@
       "valor_acuerdos": 0.0,
       "tasa_contactabilidad": 9.3,
       "dia": "2026-04-23"
+    },
+    {
+      "total_gestiones": 539,
+      "efectivas": 53,
+      "acuerdos": 1,
+      "valor_acuerdos": 0.0,
+      "tasa_contactabilidad": 9.8,
+      "dia": "2026-04-24"
     }
   ],
   "semanal": [
     {
-      "total_gestiones": 473,
+      "total_gestiones": 474,
       "efectivas": 61,
       "acuerdos": 8,
       "valor_acuerdos": 0.0,
@@ -628,44 +636,44 @@
       "label": "Sem 3 · 13-18 Abr"
     },
     {
-      "total_gestiones": 2312,
-      "efectivas": 273,
-      "acuerdos": 23,
+      "total_gestiones": 2851,
+      "efectivas": 326,
+      "acuerdos": 24,
       "valor_acuerdos": 0.0,
-      "tasa_contactabilidad": 11.8,
+      "tasa_contactabilidad": 11.4,
       "mes": 4,
       "semana": 17,
-      "label": "Sem 4 · 20-23 Abr"
+      "label": "Sem 4 · 20-24 Abr"
     }
   ],
   "asesor": [
     {
-      "total_gestiones": 2321,
-      "efectivas": 242,
+      "total_gestiones": 2427,
+      "efectivas": 246,
       "acuerdos": 34,
       "valor_acuerdos": 0.0,
-      "tasa_contactabilidad": 10.4,
+      "tasa_contactabilidad": 10.1,
       "nombre": "BIVIANA CANO"
     },
     {
-      "total_gestiones": 4147,
-      "efectivas": 691,
-      "acuerdos": 91,
+      "total_gestiones": 4271,
+      "efectivas": 712,
+      "acuerdos": 92,
       "valor_acuerdos": 0.0,
       "tasa_contactabilidad": 16.7,
       "nombre": "DAHIANA MARIN"
     },
     {
-      "total_gestiones": 4819,
-      "efectivas": 602,
+      "total_gestiones": 4981,
+      "efectivas": 612,
       "acuerdos": 69,
       "valor_acuerdos": 0.0,
-      "tasa_contactabilidad": 12.5,
+      "tasa_contactabilidad": 12.3,
       "nombre": "ESTEFANIA VELEZ"
     },
     {
-      "total_gestiones": 4311,
-      "efectivas": 486,
+      "total_gestiones": 4459,
+      "efectivas": 504,
       "acuerdos": 77,
       "valor_acuerdos": 0.0,
       "tasa_contactabilidad": 11.3,
@@ -674,35 +682,35 @@
   ],
   "canal": [
     {
-      "total_gestiones": 10057,
-      "efectivas": 729,
-      "acuerdos": 109,
+      "total_gestiones": 10485,
+      "efectivas": 742,
+      "acuerdos": 110,
       "valor_acuerdos": 0.0,
-      "tasa_contactabilidad": 7.2,
+      "tasa_contactabilidad": 7.1,
       "canal": "Llamada Saliente"
     },
     {
-      "total_gestiones": 4872,
-      "efectivas": 919,
+      "total_gestiones": 4975,
+      "efectivas": 951,
       "acuerdos": 66,
       "valor_acuerdos": 0.0,
-      "tasa_contactabilidad": 18.9,
+      "tasa_contactabilidad": 19.1,
       "canal": "Predictivo"
     },
     {
-      "total_gestiones": 470,
-      "efectivas": 280,
+      "total_gestiones": 476,
+      "efectivas": 285,
       "acuerdos": 72,
       "valor_acuerdos": 0.0,
-      "tasa_contactabilidad": 59.6,
+      "tasa_contactabilidad": 59.9,
       "canal": "Whatsapp Saliente"
     },
     {
-      "total_gestiones": 172,
-      "efectivas": 83,
+      "total_gestiones": 175,
+      "efectivas": 86,
       "acuerdos": 21,
       "valor_acuerdos": 0.0,
-      "tasa_contactabilidad": 48.3,
+      "tasa_contactabilidad": 49.1,
       "canal": "Whatsapp Entrante"
     },
     {
@@ -970,6 +978,16 @@
       "nombre": "BIVIANA CANO",
       "full": "Biviana Patricia Cano Arredondo",
       "dia": "2026-04-23"
+    },
+    {
+      "total_gestiones": 106,
+      "efectivas": 4,
+      "acuerdos": 0,
+      "valor_acuerdos": 0.0,
+      "tasa_contactabilidad": 3.8,
+      "nombre": "BIVIANA CANO",
+      "full": "Biviana Patricia Cano Arredondo",
+      "dia": "2026-04-24"
     },
     {
       "total_gestiones": 15,
@@ -1562,6 +1580,16 @@
       "dia": "2026-04-23"
     },
     {
+      "total_gestiones": 124,
+      "efectivas": 21,
+      "acuerdos": 1,
+      "valor_acuerdos": 0.0,
+      "tasa_contactabilidad": 16.9,
+      "nombre": "DAHIANA MARIN",
+      "full": "DAHIANA MARIN SANCHEZ",
+      "dia": "2026-04-24"
+    },
+    {
       "total_gestiones": 22,
       "efectivas": 2,
       "acuerdos": 2,
@@ -1612,11 +1640,11 @@
       "dia": "2026-02-13"
     },
     {
-      "total_gestiones": 37,
+      "total_gestiones": 38,
       "efectivas": 8,
       "acuerdos": 0,
       "valor_acuerdos": 0.0,
-      "tasa_contactabilidad": 21.6,
+      "tasa_contactabilidad": 21.1,
       "nombre": "ESTEFANIA VELEZ",
       "full": "ESTEFANIA VELEZ FERNANDEZ",
       "dia": "2026-02-14"
@@ -2072,6 +2100,16 @@
       "dia": "2026-04-23"
     },
     {
+      "total_gestiones": 161,
+      "efectivas": 10,
+      "acuerdos": 0,
+      "valor_acuerdos": 0.0,
+      "tasa_contactabilidad": 6.2,
+      "nombre": "ESTEFANIA VELEZ",
+      "full": "ESTEFANIA VELEZ FERNANDEZ",
+      "dia": "2026-04-24"
+    },
+    {
       "total_gestiones": 66,
       "efectivas": 2,
       "acuerdos": 1,
@@ -2430,6 +2468,16 @@
       "nombre": "JAIME MAZO",
       "full": "JAIME ALEJANDRO MAZO CIRO",
       "dia": "2026-04-23"
+    },
+    {
+      "total_gestiones": 148,
+      "efectivas": 18,
+      "acuerdos": 0,
+      "valor_acuerdos": 0.0,
+      "tasa_contactabilidad": 12.2,
+      "nombre": "JAIME MAZO",
+      "full": "JAIME ALEJANDRO MAZO CIRO",
+      "dia": "2026-04-24"
     }
   ],
   "matriz_raw": [
@@ -2443,16 +2491,16 @@
     {
       "nombre_usuario_gestion": "Biviana Patricia Cano Arredondo",
       "tipo_contacto": "Llamada Saliente",
-      "total": 1731,
-      "efectivas": 164,
-      "tasa": 9.5
+      "total": 1828,
+      "efectivas": 168,
+      "tasa": 9.2
     },
     {
       "nombre_usuario_gestion": "Biviana Patricia Cano Arredondo",
       "tipo_contacto": "Predictivo",
-      "total": 527,
+      "total": 536,
       "efectivas": 45,
-      "tasa": 8.5
+      "tasa": 8.4
     },
     {
       "nombre_usuario_gestion": "Biviana Patricia Cano Arredondo",
@@ -2485,16 +2533,16 @@
     {
       "nombre_usuario_gestion": "DAHIANA MARIN SANCHEZ",
       "tipo_contacto": "Llamada Saliente",
-      "total": 1878,
-      "efectivas": 125,
-      "tasa": 6.7
+      "total": 1959,
+      "efectivas": 126,
+      "tasa": 6.4
     },
     {
       "nombre_usuario_gestion": "DAHIANA MARIN SANCHEZ",
       "tipo_contacto": "Predictivo",
-      "total": 2001,
-      "efectivas": 421,
-      "tasa": 21.0
+      "total": 2042,
+      "efectivas": 439,
+      "tasa": 21.5
     },
     {
       "nombre_usuario_gestion": "DAHIANA MARIN SANCHEZ",
@@ -2506,9 +2554,9 @@
     {
       "nombre_usuario_gestion": "DAHIANA MARIN SANCHEZ",
       "tipo_contacto": "Whatsapp Saliente",
-      "total": 200,
-      "efectivas": 117,
-      "tasa": 58.5
+      "total": 202,
+      "efectivas": 119,
+      "tasa": 58.9
     },
     {
       "nombre_usuario_gestion": "ESTEFANIA VELEZ FERNANDEZ",
@@ -2520,23 +2568,23 @@
     {
       "nombre_usuario_gestion": "ESTEFANIA VELEZ FERNANDEZ",
       "tipo_contacto": "Llamada Saliente",
-      "total": 2912,
-      "efectivas": 196,
-      "tasa": 6.7
+      "total": 3040,
+      "efectivas": 198,
+      "tasa": 6.5
     },
     {
       "nombre_usuario_gestion": "ESTEFANIA VELEZ FERNANDEZ",
       "tipo_contacto": "Predictivo",
-      "total": 1677,
-      "efectivas": 269,
+      "total": 1705,
+      "efectivas": 272,
       "tasa": 16.0
     },
     {
       "nombre_usuario_gestion": "ESTEFANIA VELEZ FERNANDEZ",
       "tipo_contacto": "Whatsapp Entrante",
-      "total": 61,
-      "efectivas": 35,
-      "tasa": 57.4
+      "total": 63,
+      "efectivas": 37,
+      "tasa": 58.7
     },
     {
       "nombre_usuario_gestion": "ESTEFANIA VELEZ FERNANDEZ",
@@ -2548,9 +2596,9 @@
     {
       "nombre_usuario_gestion": "ESTEFANIA VELEZ FERNANDEZ",
       "tipo_contacto": "Whatsapp Saliente",
-      "total": 157,
-      "efectivas": 99,
-      "tasa": 63.1
+      "total": 161,
+      "efectivas": 102,
+      "tasa": 63.4
     },
     {
       "nombre_usuario_gestion": "JAIME ALEJANDRO MAZO CIRO",
@@ -2562,16 +2610,16 @@
     {
       "nombre_usuario_gestion": "JAIME ALEJANDRO MAZO CIRO",
       "tipo_contacto": "Llamada Saliente",
-      "total": 3536,
-      "efectivas": 244,
-      "tasa": 6.9
+      "total": 3658,
+      "efectivas": 250,
+      "tasa": 6.8
     },
     {
       "nombre_usuario_gestion": "JAIME ALEJANDRO MAZO CIRO",
       "tipo_contacto": "Predictivo",
-      "total": 667,
-      "efectivas": 184,
-      "tasa": 27.6
+      "total": 692,
+      "efectivas": 195,
+      "tasa": 28.2
     },
     {
       "nombre_usuario_gestion": "JAIME ALEJANDRO MAZO CIRO",
@@ -2583,9 +2631,9 @@
     {
       "nombre_usuario_gestion": "JAIME ALEJANDRO MAZO CIRO",
       "tipo_contacto": "Whatsapp Entrante",
-      "total": 11,
-      "efectivas": 6,
-      "tasa": 54.5
+      "total": 12,
+      "efectivas": 7,
+      "tasa": 58.3
     },
     {
       "nombre_usuario_gestion": "JAIME ALEJANDRO MAZO CIRO",
@@ -2596,34 +2644,34 @@
     }
   ],
   "resultados": {
-    "Contacto no Exitoso": 12429,
-    "No Hubo Acuerdo": 1501,
-    "Contacto Exitoso": 567,
-    "Acuerdo Parcial": 425,
+    "Contacto no Exitoso": 12853,
+    "No Hubo Acuerdo": 1552,
+    "Contacto Exitoso": 612,
+    "Acuerdo Parcial": 428,
     "Acuerdo con Descuento": 228,
-    "Pago Recordado": 180,
-    "Requerimiento": 92,
+    "Pago Recordado": 181,
+    "Requerimiento": 93,
     "Pago Pendiente por Verificar": 54,
-    "Acuerdo de Pago": 43,
-    "Busqueda Web No Exitoso": 39,
-    "Busqueda Web": 23,
+    "Busqueda Web No Exitoso": 47,
+    "Acuerdo de Pago": 44,
+    "Busqueda Web": 29,
     "Datos Actualizados": 11,
     "Posible Entrega del Bien": 3,
     "Soporte de Pago": 2,
     "Posible FS": 1
   },
   "totales": {
-    "gestiones": 15598,
-    "acuerdos": 271,
-    "efectivas": 2021,
+    "gestiones": 16138,
+    "acuerdos": 272,
+    "efectivas": 2074,
     "valor": 0.0,
     "rango_fecha": "2026-02-01 a 2026-04-30",
-    "fecha_actualizacion": "2026-04-24 16:21:12"
+    "fecha_actualizacion": "2026-04-27 07:01:28"
   },
   "asesores_nuevos": [
     {
       "nombre": "ANA MARIA BALZAC SALAZAR",
-      "gestiones": 374,
+      "gestiones": 375,
       "acuerdos": 19,
       "efectivas": 55
     },
