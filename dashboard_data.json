@@ -3,17 +3,17 @@
     "gestiones": [
       7848,
       8542,
-      6623
+      6948
     ],
     "contactabilidad": [
       13.1,
       14.4,
-      17.2
+      16.8
     ],
     "acuerdos": [
       148,
       129,
-      114
+      119
     ],
     "valor": [
       0.0,
@@ -554,6 +554,14 @@
       "valor_acuerdos": 0.0,
       "tasa_contactabilidad": 14.8,
       "dia": "2026-05-22"
+    },
+    {
+      "total_gestiones": 325,
+      "efectivas": 33,
+      "acuerdos": 5,
+      "valor_acuerdos": 0.0,
+      "tasa_contactabilidad": 10.2,
+      "dia": "2026-05-23"
     }
   ],
   "semanal": [
@@ -688,14 +696,14 @@
       "label": "Sem 3 · 11-16 May"
     },
     {
-      "total_gestiones": 1816,
-      "efectivas": 304,
-      "acuerdos": 24,
+      "total_gestiones": 2141,
+      "efectivas": 337,
+      "acuerdos": 29,
       "valor_acuerdos": 0.0,
-      "tasa_contactabilidad": 16.7,
+      "tasa_contactabilidad": 15.7,
       "mes": 5,
       "semana": 21,
-      "label": "Sem 4 · 19-22 May"
+      "label": "Sem 4 · 19-23 May"
     }
   ],
   "asesor": [
@@ -708,61 +716,61 @@
       "nombre": "BIVIANA CANO"
     },
     {
-      "total_gestiones": 5952,
-      "efectivas": 1197,
-      "acuerdos": 132,
+      "total_gestiones": 6057,
+      "efectivas": 1216,
+      "acuerdos": 134,
       "valor_acuerdos": 0.0,
       "tasa_contactabilidad": 20.1,
       "nombre": "DAHIANA MARIN"
     },
     {
-      "total_gestiones": 6215,
-      "efectivas": 802,
-      "acuerdos": 89,
+      "total_gestiones": 6325,
+      "efectivas": 808,
+      "acuerdos": 91,
       "valor_acuerdos": 0.0,
-      "tasa_contactabilidad": 12.9,
+      "tasa_contactabilidad": 12.8,
       "nombre": "ESTEFANIA VELEZ"
     },
     {
-      "total_gestiones": 7086,
-      "efectivas": 1017,
-      "acuerdos": 123,
+      "total_gestiones": 7196,
+      "efectivas": 1025,
+      "acuerdos": 124,
       "valor_acuerdos": 0.0,
-      "tasa_contactabilidad": 14.4,
+      "tasa_contactabilidad": 14.2,
       "nombre": "JAIME MAZO"
     }
   ],
   "canal": [
     {
-      "total_gestiones": 13613,
-      "efectivas": 1037,
+      "total_gestiones": 13636,
+      "efectivas": 1038,
       "acuerdos": 138,
       "valor_acuerdos": 0.0,
       "tasa_contactabilidad": 7.6,
       "canal": "Llamada Saliente"
     },
     {
-      "total_gestiones": 8309,
-      "efectivas": 1775,
-      "acuerdos": 112,
+      "total_gestiones": 8597,
+      "efectivas": 1800,
+      "acuerdos": 113,
       "valor_acuerdos": 0.0,
-      "tasa_contactabilidad": 21.4,
+      "tasa_contactabilidad": 20.9,
       "canal": "Predictivo"
     },
     {
-      "total_gestiones": 772,
-      "efectivas": 427,
-      "acuerdos": 100,
+      "total_gestiones": 779,
+      "efectivas": 429,
+      "acuerdos": 102,
       "valor_acuerdos": 0.0,
-      "tasa_contactabilidad": 55.3,
+      "tasa_contactabilidad": 55.1,
       "canal": "Whatsapp Saliente"
     },
     {
-      "total_gestiones": 281,
-      "efectivas": 140,
-      "acuerdos": 36,
+      "total_gestiones": 288,
+      "efectivas": 145,
+      "acuerdos": 38,
       "valor_acuerdos": 0.0,
-      "tasa_contactabilidad": 49.8,
+      "tasa_contactabilidad": 50.3,
       "canal": "Whatsapp Entrante"
     },
     {
@@ -1832,6 +1840,16 @@
       "dia": "2026-05-22"
     },
     {
+      "total_gestiones": 105,
+      "efectivas": 19,
+      "acuerdos": 2,
+      "valor_acuerdos": 0.0,
+      "tasa_contactabilidad": 18.1,
+      "nombre": "DAHIANA MARIN",
+      "full": "DAHIANA MARIN SANCHEZ",
+      "dia": "2026-05-23"
+    },
+    {
       "total_gestiones": 77,
       "efectivas": 11,
       "acuerdos": 2,
@@ -2412,6 +2430,16 @@
       "dia": "2026-05-22"
     },
     {
+      "total_gestiones": 110,
+      "efectivas": 6,
+      "acuerdos": 2,
+      "valor_acuerdos": 0.0,
+      "tasa_contactabilidad": 5.5,
+      "nombre": "ESTEFANIA VELEZ",
+      "full": "ESTEFANIA VELEZ FERNANDEZ",
+      "dia": "2026-05-23"
+    },
+    {
       "total_gestiones": 59,
       "efectivas": 7,
       "acuerdos": 1,
@@ -2980,6 +3008,16 @@
       "nombre": "JAIME MAZO",
       "full": "JAIME ALEJANDRO MAZO CIRO",
       "dia": "2026-05-22"
+    },
+    {
+      "total_gestiones": 110,
+      "efectivas": 8,
+      "acuerdos": 1,
+      "valor_acuerdos": 0.0,
+      "tasa_contactabilidad": 7.3,
+      "nombre": "JAIME MAZO",
+      "full": "JAIME ALEJANDRO MAZO CIRO",
+      "dia": "2026-05-23"
     }
   ],
   "matriz_raw": [
@@ -3035,30 +3073,30 @@
     {
       "nombre_usuario_gestion": "DAHIANA MARIN SANCHEZ",
       "tipo_contacto": "Llamada Saliente",
-      "total": 2692,
+      "total": 2703,
       "efectivas": 188,
       "tasa": 7.0
     },
     {
       "nombre_usuario_gestion": "DAHIANA MARIN SANCHEZ",
       "tipo_contacto": "Predictivo",
-      "total": 2814,
-      "efectivas": 778,
-      "tasa": 27.6
+      "total": 2902,
+      "efectivas": 794,
+      "tasa": 27.4
     },
     {
       "nombre_usuario_gestion": "DAHIANA MARIN SANCHEZ",
       "tipo_contacto": "Whatsapp Entrante",
-      "total": 108,
-      "efectivas": 44,
-      "tasa": 40.7
+      "total": 110,
+      "efectivas": 46,
+      "tasa": 41.8
     },
     {
       "nombre_usuario_gestion": "DAHIANA MARIN SANCHEZ",
       "tipo_contacto": "Whatsapp Saliente",
-      "total": 328,
-      "efectivas": 182,
-      "tasa": 55.5
+      "total": 332,
+      "efectivas": 183,
+      "tasa": 55.1
     },
     {
       "nombre_usuario_gestion": "ESTEFANIA VELEZ FERNANDEZ",
@@ -3070,23 +3108,23 @@
     {
       "nombre_usuario_gestion": "ESTEFANIA VELEZ FERNANDEZ",
       "tipo_contacto": "Llamada Saliente",
-      "total": 3363,
-      "efectivas": 221,
+      "total": 3375,
+      "efectivas": 222,
       "tasa": 6.6
     },
     {
       "nombre_usuario_gestion": "ESTEFANIA VELEZ FERNANDEZ",
       "tipo_contacto": "Predictivo",
-      "total": 2495,
-      "efectivas": 370,
-      "tasa": 14.8
+      "total": 2588,
+      "efectivas": 372,
+      "tasa": 14.4
     },
     {
       "nombre_usuario_gestion": "ESTEFANIA VELEZ FERNANDEZ",
       "tipo_contacto": "Whatsapp Entrante",
-      "total": 110,
-      "efectivas": 63,
-      "tasa": 57.3
+      "total": 115,
+      "efectivas": 66,
+      "tasa": 57.4
     },
     {
       "nombre_usuario_gestion": "ESTEFANIA VELEZ FERNANDEZ",
@@ -3112,9 +3150,9 @@
     {
       "nombre_usuario_gestion": "JAIME ALEJANDRO MAZO CIRO",
       "tipo_contacto": "Predictivo",
-      "total": 2029,
-      "efectivas": 534,
-      "tasa": 26.3
+      "total": 2136,
+      "efectivas": 541,
+      "tasa": 25.3
     },
     {
       "nombre_usuario_gestion": "JAIME ALEJANDRO MAZO CIRO",
@@ -3133,23 +3171,23 @@
     {
       "nombre_usuario_gestion": "JAIME ALEJANDRO MAZO CIRO",
       "tipo_contacto": "Whatsapp Saliente",
-      "total": 165,
-      "efectivas": 84,
-      "tasa": 50.9
+      "total": 168,
+      "efectivas": 85,
+      "tasa": 50.6
     }
   ],
   "resultados": {
-    "Contacto no Exitoso": 17027,
-    "No Hubo Acuerdo": 2599,
-    "Contacto Exitoso": 1063,
-    "Acuerdo Parcial": 642,
-    "Busqueda Web": 418,
-    "Busqueda Web No Exitoso": 316,
-    "Acuerdo con Descuento": 313,
-    "Pago Recordado": 284,
+    "Contacto no Exitoso": 17276,
+    "No Hubo Acuerdo": 2624,
+    "Contacto Exitoso": 1082,
+    "Acuerdo Parcial": 650,
+    "Busqueda Web": 427,
+    "Busqueda Web No Exitoso": 323,
+    "Acuerdo con Descuento": 316,
+    "Pago Recordado": 285,
     "Requerimiento": 140,
-    "Pago Pendiente por Verificar": 91,
-    "Acuerdo de Pago": 78,
+    "Pago Pendiente por Verificar": 93,
+    "Acuerdo de Pago": 80,
     "Posible Entrega del Bien": 20,
     "Datos Actualizados": 15,
     "Soporte de Pago": 5,
@@ -3157,12 +3195,12 @@
     "Posible FS": 1
   },
   "totales": {
-    "gestiones": 23013,
-    "acuerdos": 391,
-    "efectivas": 3397,
+    "gestiones": 23338,
+    "acuerdos": 396,
+    "efectivas": 3430,
     "valor": 0.0,
     "rango_fecha": "2026-03-01 a 2026-05-31",
-    "fecha_actualizacion": "2026-05-23 10:00:12"
+    "fecha_actualizacion": "2026-05-25 10:00:12"
   },
   "asesores_nuevos": [
     {
@@ -3173,15 +3211,15 @@
     },
     {
       "nombre": "ANDRES FELIPE LONDONO BALZAC",
-      "gestiones": 556,
-      "acuerdos": 10,
-      "efectivas": 37
+      "gestiones": 695,
+      "acuerdos": 11,
+      "efectivas": 46
     },
     {
       "nombre": "DANIELA ALEJANDRA CASTANEDA OSORIO",
-      "gestiones": 277,
-      "acuerdos": 1,
-      "efectivas": 39
+      "gestiones": 352,
+      "acuerdos": 2,
+      "efectivas": 55
     },
     {
       "nombre": "LEIDY JOHANA OSORIO ACEVEDO",
@@ -3191,9 +3229,9 @@
     },
     {
       "nombre": "LEIDY JOHANA VELEZ SANCHEZ",
-      "gestiones": 444,
+      "gestiones": 528,
       "acuerdos": 1,
-      "efectivas": 41
+      "efectivas": 46
     },
     {
       "nombre": "SYLVANA MOLINA BALZAC",
@@ -3209,9 +3247,9 @@
     },
     {
       "nombre": "VALERIA CARTAGENA VELEZ",
-      "gestiones": 466,
-      "acuerdos": 2,
-      "efectivas": 36
+      "gestiones": 545,
+      "acuerdos": 3,
+      "efectivas": 45
     },
     {
       "nombre": "YENIFER PAOLA AGUDELO MONTOYA",
